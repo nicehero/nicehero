@@ -21,15 +21,24 @@ namespace nicehero
 	{
 	public:
 		TcpServerImpl(asio::ip::address ip,ui16 port,TcpServer& server_)
-			:m_acceptor(gWorkerService,{ ip,port }),m_server(server_)
+			:m_acceptor(gWorkerService,{ ip,port },false),m_server(server_)
 		{
+			auto isopen = m_acceptor.is_open();
 			accept();
+		}
+		~TcpServerImpl()
+		{
+			nlogerr("~TcpServerImpl()");
 		}
 		void accept()
 		{
 			std::shared_ptr<TcpSession> s = std::shared_ptr<TcpSession>(m_server.createSession());
 			m_acceptor.async_accept(s->m_impl->m_socket,[=](std::error_code ec) {
-
+				if (ec)
+				{
+					nlogerr(ec.message().c_str());
+				}
+				accept();
 			});
 		}
 		asio::ip::tcp::acceptor m_acceptor;
@@ -42,9 +51,16 @@ namespace nicehero
 		auto addr = asio::ip::address::from_string(ip, ec);
 		if (ec)
 		{
-			nlog("TcpServer::TcpServer ip error:%s", ip.c_str());
+			nlogerr("TcpServer::TcpServer ip error:%s", ip.c_str());
 		}
-		m_impl = std::make_shared<TcpServerImpl>(addr, port,*this);
+		try
+		{
+			m_impl = std::make_shared<TcpServerImpl>(addr, port,*this);
+		}
+		catch (asio::system_error &)
+		{
+			nlogerr("cannot open %s:%d",ip.c_str(),int(port));
+		}
 	}
 
 	TcpServer::~TcpServer()

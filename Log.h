@@ -9,6 +9,8 @@ namespace nicehero
 	public:
 		void log(const char *msg, ...);
 		void logerr(const char *msg, ...);
+
+		char 		m_timebuf[20];
 	};
 }
 #define nlog Log::getInstance()->log
