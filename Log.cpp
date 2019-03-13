@@ -2,6 +2,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
+#include "Clock.h"
 
 MODULE_IMPL(nicehero::Log)
 namespace nicehero
@@ -13,9 +15,9 @@ namespace nicehero
 	void Log::log(const char *msg, ...)
 	{
 		const int reservedLen = 1;//for \n
-		time_t now = time(0);
+		ui64 now = Clock::getInstance()->getTime();
 		tm tm_now;
-		localtime_s(&tm_now, &now);
+		localtime_s(&tm_now, (time_t*)&now);
 		strftime(m_timebuf, sizeof(m_timebuf), "[%H:%M:%S]: ", &tm_now);
 		strncpy_s(LOGBUF, m_timebuf, TIMEBUF_LENGTH);
 		const int size = LOGBUF_MAXLEN - TIMEBUF_LENGTH - reservedLen;
@@ -29,9 +31,9 @@ namespace nicehero
 	void Log::logerr(const char *msg, ...)
 	{
 		const int reservedLen = 1;//for \n
-		time_t now = time(0);
+		ui64 now = Clock::getInstance()->getTime();
 		tm tm_now;
-		localtime_s(&tm_now,&now);
+		localtime_s(&tm_now, (time_t*)&now);
 		strftime(m_timebuf, sizeof(m_timebuf), "[%H:%M:%S]: ", &tm_now);
 		strncpy_s(LOGBUF, m_timebuf, TIMEBUF_LENGTH);
 		const int size = LOGBUF_MAXLEN - TIMEBUF_LENGTH - reservedLen;

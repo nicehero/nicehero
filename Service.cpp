@@ -1,10 +1,11 @@
 #include "Service.h"
 #include <thread>
+#include <asio/asio.hpp>
 
 asio::io_context nicehero::gService(1);
 asio::io_context nicehero::gWorkerService(nicehero::WORK_THREAD_COUNT);
 
-void nicehero::StartService(bool background)
+void nicehero::start(bool background)
 {
 
 	for (size_t i = 0; i < WORK_THREAD_COUNT;++ i)
@@ -29,4 +30,9 @@ void nicehero::StartService(bool background)
 		asio::io_context::work work(gService);
 		gService.run();
 	}
+}
+
+void nicehero::post(std::function<void()> f)
+{
+	gService.post(f);
 }

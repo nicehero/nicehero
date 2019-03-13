@@ -13,6 +13,6 @@ namespace nicehero
 		char 		m_timebuf[20];
 	};
 }
-#define nlog Log::getInstance()->log
-#define nlogerr Log::getInstance()->logerr
+#define nlog nicehero::Log::getInstance()->log
+#define nlogerr nicehero::Log::getInstance()->logerr
 #endif // !____LOG____
