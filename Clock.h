@@ -12,4 +12,6 @@ namespace nicehero
 
 
 }
+
+#define nNow nicehero::Clock::getInstance()->getTime()
 #endif

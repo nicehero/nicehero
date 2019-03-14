@@ -32,6 +32,12 @@ void nicehero::start(bool background)
 	}
 }
 
+void nicehero::stop()
+{
+	gService.stop();
+	gWorkerService.stop();
+}
+
 void nicehero::post(std::function<void()> f)
 {
 	gService.post(f);

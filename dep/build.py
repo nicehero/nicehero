@@ -27,6 +27,13 @@ os.system("mv asio-asio-1-12-2/asio/include include/asio")
 os.system("rm -rf asio-asio-1-12-2")
 os.system("rm -rf asio-1-12-2.tar.gz")
 
+print 'download tiny_sha3'
+os.system("git clone https://github.com/mjosaarinen/tiny_sha3")
+os.system("mv tiny_sha3 include/")
+os.system("gcc -c include/tiny_sha3/sha3.c")
+os.system("ar -r lib/sha3.lib sha3.o")
+os.system("rm -rf sha3.o")
+
 
 os.system("echo 0.1 > done")
 print 'done'

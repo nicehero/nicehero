@@ -2,10 +2,12 @@
 //
 
 #include "Service.h"
-#include "TcpServer.h"
+#include "Tcp.h"
 #include <micro-ecc/uECC.h>
-#include <windows.h>
 #include "Log.h"
+#include <asio/asio.hpp>
+#include <windows.h>
+
 int main(int argc, char* argv[])
 {
 	int i = 0;
@@ -49,7 +51,11 @@ int main(int argc, char* argv[])
 	auto privateKey1 = tcpServer.GetPrivateKeyString();
 	tcpServer.SetPrivateKeyString(privateKey1);
 	auto privateKey2 = tcpServer.GetPrivateKeyString();
+
 	nicehero::post([] {
+		asio::ip::tcp::socket s(nicehero::gService);
+		s.close();
+		s.close();
 		nlog("post test");
 	});
 	nicehero::start();
