@@ -15,16 +15,16 @@ extern "C"
 
 namespace nicehero
 {
-	static std::map<const std::type_info*, TcpMessageParser> gTcpMessageParse;
 	TcpMessageParser& getMessagerParse(const std::type_info& typeInfo)
 	{
+		static std::map<const std::type_info*, TcpMessageParser> gTcpMessageParse;
 		return gTcpMessageParse[&typeInfo];
 	}
 	class TcpSessionImpl
 	{
 	public:
 		TcpSessionImpl(TcpSession& session)
-			:m_socket(gWorkerService),m_session(session)
+			:m_socket(getWorkerService()),m_session(session)
 		{
 
 		}
@@ -35,7 +35,7 @@ namespace nicehero
 	{
 	public:
 		TcpServerImpl(asio::ip::address ip,ui16 port,TcpServer& server_)
-			:m_acceptor(gWorkerService,{ ip,port },false),m_server(server_)
+			:m_acceptor(getWorkerService(),{ ip,port },false),m_server(server_)
 		{
 			accept();
 		}
@@ -161,7 +161,7 @@ namespace nicehero
 	void TcpSessionS::init2(TcpServer& server)
 	{
 		auto self(shared_from_this());
-		std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(gWorkerService);
+		std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(getWorkerService());
 		m_impl->m_socket.async_wait(
 			asio::ip::tcp::socket::wait_read,
 			[&, self,t](std::error_code ec)	{
@@ -439,7 +439,7 @@ namespace nicehero
 
 	void TcpSessionC::init(bool isSync)
 	{
-		std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(gWorkerService);
+		std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(getWorkerService());
 		auto f = [&, t](std::error_code ec) {
 			t->cancel();
 			if (ec)

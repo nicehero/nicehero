@@ -46,6 +46,20 @@ private:
 	void xb() {}
 	int bb = 0;
 };
+#include <map>
+
+extern std::map<int,int> testG;
+class G
+{
+public:
+	G()
+	{
+// 		testG[5] = 5;
+	}
+};
+G gg;
+std::map<int, int> testG;
+
 void testType(A* a, A* a2)
 {
 	const std::type_info& pa = typeid(*a);

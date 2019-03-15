@@ -1,18 +1,18 @@
 #include "Service.h"
 #include <thread>
 #include <asio/asio.hpp>
+#include <random>
 
 asio::io_context nicehero::gService(1);
-asio::io_context nicehero::gWorkerService(nicehero::WORK_THREAD_COUNT);
+asio::io_context nicehero::gWorkerServices[nicehero::WORK_THREAD_COUNT];
 
 void nicehero::start(bool background)
 {
-
 	for (size_t i = 0; i < WORK_THREAD_COUNT;++ i)
 	{
-		std::thread t([] {
-			asio::io_context::work work(gWorkerService);
-			gWorkerService.run();
+		std::thread t([i] {
+			asio::io_context::work work(gWorkerServices[i]);
+			gWorkerServices[i].run();
 		});
 		t.detach();
 	}
@@ -35,10 +35,19 @@ void nicehero::start(bool background)
 void nicehero::stop()
 {
 	gService.stop();
-	gWorkerService.stop();
+	for (size_t i = 0; i < WORK_THREAD_COUNT; ++i)
+	{
+		gWorkerServices[i].stop();
+	}
 }
 
 void nicehero::post(std::function<void()> f)
 {
 	gService.post(f);
+}
+
+asio::io_context& nicehero::getWorkerService()
+{
+	static std::default_random_engine e;
+	return gWorkerServices[e() % WORK_THREAD_COUNT];
 }
