@@ -3,14 +3,20 @@
 #include <micro-ecc/uECC.h>
 #include "Log.h"
 #include <asio/asio.hpp>
+#include "Message.h"
 #include <windows.h>
 
 
 int main()
 {
-	nicehero::TcpSessionC c;
-	c.connect("127.0.0.1", 7000);
-	c.init();
+	std::shared_ptr<nicehero::TcpSessionC> c = std::make_shared<nicehero::TcpSessionC>();
+	std::shared_ptr<nicehero::TcpSession> c2(c->shared_from_this());
+	c->connect("127.0.0.1", 7000);
+	c->init();
+	ui32 dat[2] = {8,0};
+	*(ui16*)(dat + 1) = 100;
+	nicehero::Message msg(dat, 8);
+	c->sendMessage(msg);
 	nicehero::start();
 // 	asio::io_context io(1);
 // 	asio::signal_set signals(io);

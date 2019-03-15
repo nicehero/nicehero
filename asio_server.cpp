@@ -155,7 +155,8 @@ int main(int argc, char* argv[])
 	__int64  x = large_interger2.QuadPart - large_interger1.QuadPart;
 	printf("%lf\n", x * 1000 / dff);
 
- 	auto tcpServer = nicehero::TcpServer("0.0.0.0", 7000);
+ 	auto tcpServer = MyServer("0.0.0.0", 7000);
+	tcpServer.accept();
 	auto privateKey1 = tcpServer.GetPrivateKeyString();
 	tcpServer.SetPrivateKeyString(privateKey1);
 	auto privateKey2 = tcpServer.GetPrivateKeyString();

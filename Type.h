@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+const int NETWORK_BUF_SIZE = 1024 * 16;
+
 typedef uint8_t ui8;
 typedef int16_t i16;
 typedef uint16_t ui16;

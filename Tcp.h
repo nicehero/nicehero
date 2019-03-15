@@ -46,6 +46,7 @@ namespace nicehero
 		virtual void init2(TcpServer& server);
 		virtual void close();
 		virtual void setMessageParser(TcpMessageParser* messageParser);
+		virtual void sendMessage(Message& msg);
 		TcpMessageParser* m_MessageParser = nullptr;
 		std::string& getUid();
 	protected:
@@ -58,6 +59,10 @@ namespace nicehero
 		virtual void removeSelf();
 		virtual void removeSelfImpl();
 		void doRead();
+		void doSend(Message& msg);
+		void doSend();
+		std::atomic_bool m_IsSending = false;
+		std::list<Message> m_SendList;
 		virtual void handleMessage(std::shared_ptr<Message> msg);
 	};
 	class TcpSessionS
@@ -107,21 +112,22 @@ namespace nicehero
 
 		virtual void addSession(const tcpuid& uid, std::shared_ptr<TcpSession> session);
 		virtual void removeSession(const tcpuid& uid,ui64 serialID);
-
+		virtual void accept();
 		std::unordered_map<tcpuid, std::shared_ptr<TcpSession> > m_sessions;
 	};
 	TcpMessageParser& getMessagerParse(const std::type_info& typeInfo);
 	inline TcpSessionCommand::TcpSessionCommand(const std::type_info & info, /*!< 类型信息 */ ui16 command, /*!< 网络消息ID */ tcpcommand func /*!< 处理函数) */)
 	{
-		getMessagerParse(info).m_commands[command] = func;
+		TcpMessageParser& msgParser = getMessagerParse(info);
+		msgParser.m_commands[command] = func;
 	}
 
 }
 
 #define TCP_SESSION_COMMAND(CLASS,COMMAND) \
-static bool _##CLASS##_##COMMAND##FUNC(nicehero::TcpSession& session, Message& msg);\
+static bool _##CLASS##_##COMMAND##FUNC(nicehero::TcpSession& session, nicehero::Message& msg);\
 static nicehero::TcpSessionCommand _##CLASS##_##COMMAND(typeid(CLASS), COMMAND, _##CLASS##_##COMMAND##FUNC);\
-static bool _##CLASS##_##COMMAND##FUNC(nicehero::TcpSession& session, Message& msg)
+static bool _##CLASS##_##COMMAND##FUNC(nicehero::TcpSession& session, nicehero::Message& msg)
 
 #ifndef SESSION_COMMAND
 #define SESSION_COMMAND TCP_SESSION_COMMAND

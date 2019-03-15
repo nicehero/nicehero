@@ -31,13 +31,13 @@ namespace nicehero
 		asio::ip::tcp::socket m_socket;
 		TcpSession& m_session;
 	};
+
 	class TcpServerImpl
 	{
-	public:
+public:
 		TcpServerImpl(asio::ip::address ip,ui16 port,TcpServer& server_)
 			:m_acceptor(getWorkerService(),{ ip,port },false),m_server(server_)
 		{
-			accept();
 		}
 		~TcpServerImpl()
 		{
@@ -109,8 +109,14 @@ namespace nicehero
 		auto it = m_sessions.find(uid);
 		if (it != m_sessions.end() && it->second->m_serialID == serialID)
 		{
+			it->second->close();
 			m_sessions.erase(uid);
 		}
+	}
+
+	void TcpServer::accept()
+	{
+		m_impl->accept();
 	}
 
 	TcpSessionS::TcpSessionS()
@@ -261,15 +267,13 @@ namespace nicehero
 			[=](std::error_code ec) {
 			if (ec)
 			{
-				printf("do_read async_wait error ec:%d,msg:%s\n", ec.value(), ec.message().c_str());
 				self->removeSelf();
 				return;
 			}
-			unsigned char data_[2048];
+			unsigned char data_[NETWORK_BUF_SIZE];
 			ui32 len = (ui32)self->m_impl->m_socket.read_some(asio::buffer(data_), ec);
 			if (ec)
 			{
-				printf("do_read async_wait error ec:%d,msg:%s\n", ec.value(), ec.message().c_str());
 				self->removeSelf();
 				return;
 			}
@@ -277,7 +281,6 @@ namespace nicehero
 			{
 				if (!parseMsg(data_, len))
 				{
-					printf("do_read async_wait pack_msg error ec:%d,msg:%s\n", ec.value(), ec.message().c_str());
 					self->removeSelf();
 					return;
 				}
@@ -288,7 +291,7 @@ namespace nicehero
 
 	bool TcpSession::parseMsg(unsigned char* data, ui32 len)
 	{
-		if (len > 2048)
+		if (len > NETWORK_BUF_SIZE)
 		{
 			return false;
 		}
@@ -407,6 +410,108 @@ namespace nicehero
 	std::string& TcpSession::getUid()
 	{
 		return m_uid;
+	}
+
+	void TcpSession::doSend(Message& msg)
+	{
+		auto self(shared_from_this());
+		std::shared_ptr<Message> msg_ = std::make_shared<Message>();
+		msg_->swap(msg);
+		m_impl->m_socket.get_io_service().post([this,self, msg_] {
+			//same thread ,no need lock
+			m_SendList.emplace_back();
+			m_SendList.back().swap(*msg_);
+			if (m_IsSending)
+			{
+				return;
+			}
+			doSend();
+		});
+	}
+
+	void TcpSession::doSend()
+	{
+		auto self(shared_from_this());
+		m_IsSending = true;
+		while (m_SendList.size() > 0 && m_SendList.front().m_buff == nullptr)
+		{
+			m_SendList.pop_front();
+		}
+		if (m_SendList.empty())
+		{
+			m_IsSending = false;
+			return;
+		}
+		ui8* data = m_SendList.front().m_buff;
+		ui32 size_ = m_SendList.front().getSize();
+		if (m_SendList.size() > 1 && size_ <= NETWORK_BUF_SIZE)
+		{
+			ui8 data2[NETWORK_BUF_SIZE];
+			size_ = 0;
+			while (m_SendList.size() > 0)
+			{
+				Message& msg = m_SendList.front();
+				if (size_ + msg.getSize() > NETWORK_BUF_SIZE)
+				{
+					break;
+				}
+				memcpy(data2 + size_, msg.m_buff, msg.getSize());
+				m_SendList.pop_front();
+			}
+			asio::async_write(m_impl->m_socket,asio::buffer(data2, size_)
+				, asio::transfer_at_least(size_)
+				, [this,self, size_](asio::error_code ec, std::size_t s) {
+				if (ec)
+				{
+					removeSelf();
+					return;
+				}
+				if (s < size_)
+				{
+					nlogerr("async_write buffer(data2, size_) err s:%d < size_:%d", int(s), int(size_));
+					removeSelf();
+					return;
+				}
+				if (m_SendList.size() > 0)
+				{
+					doSend();
+					return;
+				}
+				m_IsSending = false;
+			});
+		}
+		else
+		{
+			asio::async_write(m_impl->m_socket
+				, asio::buffer(data, size_)
+				, asio::transfer_at_least(size_)
+				, [this, self, size_](asio::error_code ec, std::size_t s) {
+				if (ec)
+				{
+					removeSelf();
+					return;
+				}
+				if (s < size_)
+				{
+					nlogerr("async_write buffer(data2, size_) err s:%d < size_:%d", int(s), int(size_));
+					removeSelf();
+					return;
+				}
+				m_SendList.pop_front();
+				if (m_SendList.size() > 0)
+				{
+					doSend();
+					return;
+				}
+				m_IsSending = false;
+			});
+		}
+
+	}
+
+	void TcpSession::sendMessage(Message& msg)
+	{
+		doSend(msg);
 	}
 
 	TcpSessionC::TcpSessionC()
