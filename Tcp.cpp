@@ -15,8 +15,8 @@ extern "C"
 
 namespace nicehero
 {
-	static std::map<const std::type_info*, MessageParser> gTcpMessageParse;
-	static MessageParser& getMessagerParse(const std::type_info& typeInfo)
+	static std::map<const std::type_info*, TcpMessageParser> gTcpMessageParse;
+	TcpMessageParser& getMessagerParse(const std::type_info& typeInfo)
 	{
 		return gTcpMessageParse[&typeInfo];
 	}
@@ -399,7 +399,7 @@ namespace nicehero
 		m_impl->m_socket.close();
 	}
 
-	void TcpSession::setMessageParser(MessageParser* messageParser)
+	void TcpSession::setMessageParser(TcpMessageParser* messageParser)
 	{
 		m_MessageParser = messageParser;
 	}
@@ -485,6 +485,7 @@ namespace nicehero
 				return;
 			}
 			m_isInit = true;
+			m_MessageParser = &getMessagerParse(typeid(*this));
 		};
 		if (isSync)
 		{
@@ -550,6 +551,7 @@ namespace nicehero
 		}
 		return ret;
 	}
+
 
 }
 

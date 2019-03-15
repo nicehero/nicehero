@@ -1,5 +1,5 @@
-#ifndef ___TCPSERVER____
-#define ___TCPSERVER____
+#ifndef ___NICE_TCPSERVER____
+#define ___NICE_TCPSERVER____
 #include <string>
 #include "Type.h"
 #include <memory>
@@ -13,15 +13,25 @@
 
 namespace nicehero
 {
+	class TcpSession;
 	typedef std::string tcpuid ;
+	typedef bool(*tcpcommand)(TcpSession&, Message&);
+	//typedef std::function<bool(TcpSession&, Message&)> tcpcommand;
 	class TcpServer;
 	class TcpSessionImpl;
 	class TcpServerImpl;
-	class TcpSession;
-	class MessageParser
+	class TcpMessageParser
 	{
 	public:
-		std::function<bool(TcpSession& session, Message&)> m_commands[65536];
+		tcpcommand m_commands[65536] = {nullptr};
+	};
+	class TcpSessionCommand
+	{
+	public:
+		TcpSessionCommand(const std::type_info & info,	//!< 类型信息
+			ui16 command,					//!< 网络消息ID
+			tcpcommand fucnc			//!< 处理函数)
+			);
 	};
 	class TcpSession
 		:public NoCopy,public std::enable_shared_from_this<TcpSession>
@@ -35,8 +45,8 @@ namespace nicehero
 		virtual void init(TcpServer& server);
 		virtual void init2(TcpServer& server);
 		virtual void close();
-		virtual void setMessageParser(MessageParser* messageParser);
-		MessageParser* m_MessageParser = nullptr;
+		virtual void setMessageParser(TcpMessageParser* messageParser);
+		TcpMessageParser* m_MessageParser = nullptr;
 		std::string& getUid();
 	protected:
 		std::shared_ptr<TcpSessionImpl> m_impl;
@@ -100,10 +110,21 @@ namespace nicehero
 
 		std::unordered_map<tcpuid, std::shared_ptr<TcpSession> > m_sessions;
 	};
+	TcpMessageParser& getMessagerParse(const std::type_info& typeInfo);
+	inline TcpSessionCommand::TcpSessionCommand(const std::type_info & info, /*!< 类型信息 */ ui16 command, /*!< 网络消息ID */ tcpcommand func /*!< 处理函数) */)
+	{
+		getMessagerParse(info).m_commands[command] = func;
+	}
 
 }
-#ifndef ON_TCPMESSAGE
-#define ON_TCPMESSAGE template <const ui16 cmd> static bool onMessage(nicehero::TcpSession& session,nicehero::Message& msg);
+
+#define TCP_SESSION_COMMAND(CLASS,COMMAND) \
+static bool _##CLASS##_##COMMAND##FUNC(nicehero::TcpSession& session, Message& msg);\
+static nicehero::TcpSessionCommand _##CLASS##_##COMMAND(typeid(CLASS), COMMAND, _##CLASS##_##COMMAND##FUNC);\
+static bool _##CLASS##_##COMMAND##FUNC(nicehero::TcpSession& session, Message& msg)
+
+#ifndef SESSION_COMMAND
+#define SESSION_COMMAND TCP_SESSION_COMMAND
 #endif
 
 #endif

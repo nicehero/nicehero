@@ -7,15 +7,44 @@
 #include "Log.h"
 #include <asio/asio.hpp>
 #include <windows.h>
-class A
+
+void some_sync(std::function<void()> f)
 {
+	f();
+}
+
+class A:public std::enable_shared_from_this<A>
+{
+	friend class B;
 public:
-	virtual void a() {}
+	virtual ~A() {
+
+	}
+	int aa = 0;
+protected:
+	virtual void a() const{}
+	void ca() {}
 };
 class B :public A
 {
 public:
-	void a() {}
+	virtual ~B() {
+		bb = 1;
+	}
+	void a() const{}
+	void b() {
+		auto self(shared_from_this());
+		some_sync([] {
+			A xa;
+			xa.a();
+		});
+		xb();
+		B bbb;
+		bbb.xb();
+	}
+private:
+	void xb() {}
+	int bb = 0;
 };
 void testType(A* a, A* a2)
 {
@@ -31,11 +60,50 @@ void testType(A* a, A* a2)
 	printf("%s\n", pb2.name());
 }
 
+std::unique_ptr<A> classTest()
+{
+// 	A a;
+// 	B b;
+// 	testType(&a, &b);
+	{
+// 		std::shared_ptr<A> sa = std::make_shared<B>();
+	}
+	std::unique_ptr<A> ua = std::make_unique<B>();
+	return ua;
+}
+
+void lamdbaTest()
+{
+	
+}
+
+class MyClient :public nicehero::TcpSessionS
+{
+public:
+
+};
+class MyServer :public nicehero::TcpServer
+{
+public:
+	MyServer(const std::string& ip, ui16 port)
+		:TcpServer(ip, port)
+	{}
+	virtual nicehero::TcpSessionS* createSession();
+};
+
+nicehero::TcpSessionS* MyServer::createSession()
+{
+	return new MyClient();
+}
+static void fffff();
+static void fffff()
+{
+	printf("fffff\n");
+}
 int main(int argc, char* argv[])
 {
-	A a;
-	B b;
-	testType(&a, &b);
+	fffff();
+	std::unique_ptr<A> ua = classTest();
 	int i = 0;
 	int c = 0;
 	uint8_t privateKey[32] = { 0 };
@@ -73,7 +141,7 @@ int main(int argc, char* argv[])
 	__int64  x = large_interger2.QuadPart - large_interger1.QuadPart;
 	printf("%lf\n", x * 1000 / dff);
 
-	auto tcpServer = nicehero::TcpServer("0.0.0.0", 7000);
+ 	auto tcpServer = nicehero::TcpServer("0.0.0.0", 7000);
 	auto privateKey1 = tcpServer.GetPrivateKeyString();
 	tcpServer.SetPrivateKeyString(privateKey1);
 	auto privateKey2 = tcpServer.GetPrivateKeyString();
@@ -98,3 +166,9 @@ int main(int argc, char* argv[])
 	nicehero::start();
 	return 0;
 }
+
+SESSION_COMMAND(MyClient, 100)
+{
+	return true;
+}
+
