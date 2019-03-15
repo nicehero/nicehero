@@ -6,6 +6,7 @@
 #include "Log.h"
 #include "Message.h"
 #include "Clock.h"
+#include <map>
 
 extern "C"
 {
@@ -14,6 +15,11 @@ extern "C"
 
 namespace nicehero
 {
+	static std::map<const std::type_info*, MessageParser> gTcpMessageParse;
+	static MessageParser& getMessagerParse(const std::type_info& typeInfo)
+	{
+		return gTcpMessageParse[&typeInfo];
+	}
 	class TcpSessionImpl
 	{
 	public:
@@ -40,6 +46,12 @@ namespace nicehero
 		void accept()
 		{
 			std::shared_ptr<TcpSession> s = std::shared_ptr<TcpSession>(m_server.createSession());
+			TcpSessionS* ss = dynamic_cast<TcpSessionS*>(s.get());
+			if (ss)
+			{
+				ss->m_TcpServer = &m_server;
+				ss->m_MessageParser = &getMessagerParse(typeid(*ss));
+			}
 			m_acceptor.async_accept(s->m_impl->m_socket,
 				[this,s](std::error_code ec) {
 				if (ec)
@@ -87,7 +99,7 @@ namespace nicehero
 		auto it = m_sessions.find(uid);
 		if (it != m_sessions.end())
 		{
-			it->second->m_impl->m_socket.close();
+			it->second->close();
 		}
 		m_sessions[uid] = session;
 	}
@@ -150,7 +162,7 @@ namespace nicehero
 	{
 		auto self(shared_from_this());
 		std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(gWorkerService);
-		self->m_impl->m_socket.async_wait(
+		m_impl->m_socket.async_wait(
 			asio::ip::tcp::socket::wait_read,
 			[&, self,t](std::error_code ec)	{
 			t->cancel();
@@ -159,7 +171,7 @@ namespace nicehero
 				return;
 			}
 			ui8 data_[PUBLIC_KEY_SIZE + SIGN_SIZE] = "";
-			std::size_t len = self->m_impl->m_socket.read_some(
+			std::size_t len = m_impl->m_socket.read_some(
 				asio::buffer(data_, sizeof(data_)), ec);
 			if (ec)
 			{
@@ -186,12 +198,12 @@ namespace nicehero
 			{
 				return;
 			}
-			self->m_uid = std::string((const char*)data_, PUBLIC_KEY_SIZE);
+			m_uid = std::string((const char*)data_, PUBLIC_KEY_SIZE);
 			static ui64 nowSerialID = 10000;
-			self->m_serialID = nowSerialID++;
+			m_serialID = nowSerialID++;
 			nicehero::post([&,this, self] {
-				server.addSession(self->m_uid, self);
-				self->doRead();
+				server.addSession(m_uid, self);
+				doRead();
 			});
 
 		});
@@ -199,10 +211,27 @@ namespace nicehero
 		t->async_wait([self](std::error_code ec) {
 			if (!ec)
 			{
-				self->m_impl->m_socket.close();
+				self->close();
 			}
 		});
 
+	}
+
+
+	void TcpSessionS::removeSelf()
+	{
+		auto self(shared_from_this());
+		nicehero::post([&,self] {
+			removeSelfImpl();
+		});
+	}
+
+	void TcpSessionS::removeSelfImpl()
+	{
+		if (m_TcpServer)
+		{
+			m_TcpServer->removeSession(m_uid, m_serialID);
+		}
 	}
 
 	TcpSession::TcpSession()
@@ -228,6 +257,156 @@ namespace nicehero
 	void TcpSession::doRead()
 	{
 		auto self(shared_from_this());
+		this->m_impl->m_socket.async_wait(asio::ip::tcp::socket::wait_read,
+			[=](std::error_code ec) {
+			if (ec)
+			{
+				printf("do_read async_wait error ec:%d,msg:%s\n", ec.value(), ec.message().c_str());
+				self->removeSelf();
+				return;
+			}
+			unsigned char data_[2048];
+			ui32 len = (ui32)self->m_impl->m_socket.read_some(asio::buffer(data_), ec);
+			if (ec)
+			{
+				printf("do_read async_wait error ec:%d,msg:%s\n", ec.value(), ec.message().c_str());
+				self->removeSelf();
+				return;
+			}
+			if (len > 0)
+			{
+				if (!parseMsg(data_, len))
+				{
+					printf("do_read async_wait pack_msg error ec:%d,msg:%s\n", ec.value(), ec.message().c_str());
+					self->removeSelf();
+					return;
+				}
+			}
+			doRead();
+		});
+	}
+
+	bool TcpSession::parseMsg(unsigned char* data, ui32 len)
+	{
+		if (len > 2048)
+		{
+			return false;
+		}
+		Message& prevMsg = m_PreMsg;
+		auto self(shared_from_this());
+		if (prevMsg.m_buff == nullptr)
+		{
+			if (len < 4)
+			{
+				memcpy(&prevMsg.m_writePoint, data, len);
+				prevMsg.m_buff = (unsigned char*)&prevMsg.m_writePoint;
+				prevMsg.m_readPoint = len;
+				return true;
+			}
+			unsigned long msgLen = *((unsigned long*)data);
+			if (msgLen > MSG_SIZE)
+			{
+				return false;
+			}
+			if (msgLen >= len)
+			{
+				auto recvMsg = std::make_shared<Message>(data, *((unsigned long*)data));
+				
+				nicehero::post([=] {
+					self->handleMessage(recvMsg);
+				});
+				if (msgLen > len)
+				{
+					return parseMsg( data + msgLen, len - msgLen);
+				}
+				else
+				{
+					return true;
+				}
+			}
+			else
+			{
+				prevMsg.m_buff = new unsigned char[msgLen];
+				memcpy(prevMsg.m_buff, data, len);
+				return true;
+			}
+		}
+		unsigned long msgLen = 0;
+		unsigned long cutSize = 0;
+		if (prevMsg.m_buff == (unsigned char*)&prevMsg.m_writePoint)
+		{
+			if (prevMsg.m_readPoint + len < 4)
+			{
+				memcpy(((unsigned char*)&prevMsg.m_writePoint) + prevMsg.m_readPoint
+					, data, len);
+				prevMsg.m_readPoint = prevMsg.m_readPoint + len;
+				return true;
+			}
+			cutSize = 4 - prevMsg.m_readPoint;
+			memcpy(((unsigned char*)&prevMsg.m_writePoint) + prevMsg.m_readPoint
+				, data, cutSize);
+			msgLen = prevMsg.m_writePoint;
+			prevMsg.m_buff = new unsigned char[msgLen];
+			memcpy(prevMsg.m_buff, &msgLen, 4);
+			prevMsg.m_readPoint = 4;
+			prevMsg.m_writePoint = 4;
+		}
+		msgLen = prevMsg.getSize();
+		if (msgLen > MSG_SIZE)
+		{
+			return false;
+		}
+		if (len + prevMsg.m_writePoint - cutSize >= msgLen)
+		{
+			memcpy(prevMsg.m_buff, data + cutSize, msgLen - prevMsg.m_writePoint);
+			data = data + cutSize + (msgLen - prevMsg.m_writePoint);
+			len = len - cutSize - (msgLen - prevMsg.m_writePoint);
+			auto recvMsg = std::make_shared<Message>();
+			recvMsg->swap(prevMsg);
+			nicehero::post([=] {
+				self->handleMessage(recvMsg);
+			});
+			if (len > 0)
+			{
+				return parseMsg( data, len);
+			}
+			return true;
+		}
+		memcpy(prevMsg.m_buff + prevMsg.m_writePoint, data + cutSize, len - cutSize);
+		prevMsg.m_writePoint += len - cutSize;
+		return true;
+	}
+
+	void TcpSession::removeSelf()
+	{
+	}
+
+	void TcpSession::removeSelfImpl()
+	{
+
+	}
+
+	void TcpSession::handleMessage(std::shared_ptr<Message> msg)
+	{
+		if (m_MessageParser)
+		{
+			m_MessageParser->m_commands[msg->getMsgID()](*this, *msg.get());
+		}
+	}
+
+	void TcpSession::close()
+	{
+		m_impl->m_socket.close();
+	}
+
+	void TcpSession::setMessageParser(MessageParser* messageParser)
+	{
+		m_MessageParser = messageParser;
+	}
+
+	std::string& TcpSession::getUid()
+	{
+		return m_uid;
 	}
 
 	TcpSessionC::TcpSessionC()
@@ -315,7 +494,7 @@ namespace nicehero
 			t->async_wait([&](std::error_code ec) {
 				if (!ec)
 				{
-					m_impl->m_socket.close();
+					close();
 				}
 			});
 		}
@@ -324,6 +503,7 @@ namespace nicehero
 			f(std::error_code());
 		}
 	}
+
 
 	int TcpSessionC::checkServerSign(ui8* data_)
 	{

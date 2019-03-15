@@ -7,9 +7,35 @@
 #include "Log.h"
 #include <asio/asio.hpp>
 #include <windows.h>
+class A
+{
+public:
+	virtual void a() {}
+};
+class B :public A
+{
+public:
+	void a() {}
+};
+void testType(A* a, A* a2)
+{
+	const std::type_info& pa = typeid(*a);
+	const std::type_info& pb = typeid(*a2);
+	const std::type_info& pb2 = typeid(*a2);
+	if (&pb == &pb2)
+	{
+		printf("&pb == &pb2\n");
+	}
+	printf("%s\n",pa.name());
+	printf("%s\n", pb.name());
+	printf("%s\n", pb2.name());
+}
 
 int main(int argc, char* argv[])
 {
+	A a;
+	B b;
+	testType(&a, &b);
 	int i = 0;
 	int c = 0;
 	uint8_t privateKey[32] = { 0 };
@@ -51,7 +77,18 @@ int main(int argc, char* argv[])
 	auto privateKey1 = tcpServer.GetPrivateKeyString();
 	tcpServer.SetPrivateKeyString(privateKey1);
 	auto privateKey2 = tcpServer.GetPrivateKeyString();
-
+	std::function<bool()> ff;
+	if (!ff)
+	{
+		ff = [] {
+			printf("ff\n");
+			return true;
+		};
+		if (ff)
+		{
+			ff();
+		}
+	}
 	nicehero::post([] {
 		asio::ip::tcp::socket s(nicehero::gService);
 		s.close();
