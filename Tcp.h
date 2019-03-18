@@ -62,7 +62,7 @@ namespace nicehero
 		void doRead();
 		void doSend(Message& msg);
 		void doSend();
-		std::atomic_bool m_IsSending = false;
+		std::atomic_bool m_IsSending;
 		std::list<Message> m_SendList;
 		virtual void handleMessage(std::shared_ptr<Message> msg);
 	};
@@ -92,7 +92,7 @@ namespace nicehero
 		bool connect(const std::string& ip, ui16 port);
 		void init(bool isSync = false);
 
-		std::atomic<bool> m_isInit = false;
+		std::atomic<bool> m_isInit;
 	private:
 		int checkServerSign(ui8* data_);//return 0 ok 1 error 2 warnning
 	};

@@ -243,6 +243,7 @@ public:
 	TcpSession::TcpSession()
 	{
 		m_impl = std::make_shared<TcpSessionImpl>(*this);
+		m_IsSending = false;
 	}
 
 	void TcpSession::init(TcpServer& server)
@@ -517,6 +518,7 @@ public:
 
 	TcpSessionC::TcpSessionC()
 	{
+		m_isInit = false;
 		m_impl = std::make_shared<TcpSessionImpl>(*this);
 	}
 
