@@ -14,11 +14,13 @@ os.system("rm -rf v1.0.tar.gz")
 
 print 'build micro-ecc'
 
-os.system("gcc -c include/micro-ecc/uECC.c")
 if os.name == "nt":
+	os.system("gcc -c include/micro-ecc/uECC.c")
 	os.system("ar -r lib/uECC.lib uECC.o")
 else:
-	os.system("ar -r lib/libuECC.a uECC.o")
+	os.system("gcc -c include/micro-ecc/uECC.c")
+	os.system("ar -rcs lib/uECC.lib uECC.o")
+	#os.system("gcc -shared -fPIC -o lib/libuECC.so include/micro-ecc/uECC.c")
 os.system("rm -rf uECC.o")
 
 print 'end micro-ecc'
@@ -33,11 +35,13 @@ os.system("rm -rf asio-1-12-2.tar.gz")
 print 'download tiny_sha3'
 os.system("git clone https://github.com/mjosaarinen/tiny_sha3")
 os.system("mv tiny_sha3 include/")
-os.system("gcc -c include/tiny_sha3/sha3.c")
 if os.name == "nt":
+	os.system("gcc -c include/tiny_sha3/sha3.c")
 	os.system("ar -r lib/sha3.lib sha3.o")
 else:
-	os.system("ar -r lib/libsha3.a sha3.o")
+	os.system("gcc -c include/tiny_sha3/sha3.c")
+	os.system("ar -rcs lib/sha3.lib sha3.o")
+	#os.system("gcc -shared -fPIC -o lib/libsha3.so include/tiny_sha3/sha3.c")
 os.system("rm -rf sha3.o")
 
 
