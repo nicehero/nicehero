@@ -18,7 +18,7 @@ os.system("gcc -c include/micro-ecc/uECC.c")
 if os.name == "nt":
 	os.system("ar -r lib/uECC.lib uECC.o")
 else:
-	os.system("ar -r lib/libuECC sha3.o")
+	os.system("ar -r lib/libuECC uECC.o")
 os.system("rm -rf uECC.o")
 
 print 'end micro-ecc'
