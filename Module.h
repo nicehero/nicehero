@@ -163,14 +163,15 @@ namespace nicehero
 #define MODULE_IMPL(T) \
 namespace nicehero \
 {\
-		T* T::m_instance = nullptr;\
-		template <>		\
-		T * Module<T>::getInstance() \
-		{				\
-			if (!m_instance)\
-			{m_instance = new T();}\
-			return m_instance;	\
-		}\
+	template <>    \
+	T* Module<T>::m_instance = nullptr;\
+	template <>		\
+	T * Module<T>::getInstance() \
+	{				\
+		if (!m_instance)\
+		{m_instance = new T();}\
+		return m_instance;	\
+	}\
 }\
 
 #endif // !____MODULE____
