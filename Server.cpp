@@ -73,7 +73,7 @@ namespace nicehero
 		char privateKey[256] = "0x";
 		for (size_t i = 0; i < PRIVATE_KEY_SIZE;++ i)
 		{
-			sprintf_s(&privateKey[2 + i * 2],256 - 2 - i * 2, "%02x"	, m_privateKey[i]);
+			snprintf(&privateKey[2 + i * 2],256 - 2 - i * 2, "%02x"	, m_privateKey[i]);
 		}
 		return privateKey;
 	}
@@ -83,7 +83,7 @@ namespace nicehero
 		char publicKey[256] = "0x";
 		for (size_t i = 0; i < PUBLIC_KEY_SIZE; ++i)
 		{
-			sprintf_s(&publicKey[2 + i * 2], 256 - 2 - i * 2, "%02x", m_publicKey[i]);
+			snprintf(&publicKey[2 + i * 2], 256 - 2 - i * 2, "%02x", m_publicKey[i]);
 		}
 		return publicKey;
 	}
