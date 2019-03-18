@@ -78,17 +78,6 @@ void testType(A* a, A* a2)
 	printf("%s\n", pb2.name());
 }
 
-std::unique_ptr<A> classTest()
-{
-// 	A a;
-// 	B b;
-// 	testType(&a, &b);
-	{
-// 		std::shared_ptr<A> sa = std::make_shared<B>();
-	}
-	std::unique_ptr<A> ua = std::make_unique<B>();
-	return ua;
-}
 
 void lamdbaTest()
 {
@@ -121,7 +110,6 @@ static void fffff()
 int main(int argc, char* argv[])
 {
 	fffff();
-	std::unique_ptr<A> ua = classTest();
 	int i = 0;
 	int c = 0;
 	uint8_t privateKey[32] = { 0 };
