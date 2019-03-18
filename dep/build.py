@@ -15,7 +15,10 @@ os.system("rm -rf v1.0.tar.gz")
 print 'build micro-ecc'
 
 os.system("gcc -c include/micro-ecc/uECC.c")
-os.system("ar -r lib/uECC.lib uECC.o")
+if os.name == "nt":
+	os.system("ar -r lib/uECC.lib uECC.o")
+else:
+	os.system("ar -r lib/libuECC sha3.o")
 os.system("rm -rf uECC.o")
 
 print 'end micro-ecc'
@@ -31,7 +34,10 @@ print 'download tiny_sha3'
 os.system("git clone https://github.com/mjosaarinen/tiny_sha3")
 os.system("mv tiny_sha3 include/")
 os.system("gcc -c include/tiny_sha3/sha3.c")
-os.system("ar -r lib/sha3.lib sha3.o")
+if os.name == "nt":
+	os.system("ar -r lib/sha3.lib sha3.o")
+else:
+	os.system("ar -r lib/libsha3 sha3.o")
 os.system("rm -rf sha3.o")
 
 
