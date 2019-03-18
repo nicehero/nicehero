@@ -110,7 +110,6 @@ static void fffff()
 int main(int argc, char* argv[])
 {
 	fffff();
-	int i = 0;
 	int c = 0;
 	uint8_t privateKey[32] = { 0 };
 	uint8_t publicKey[64] = { 0 };
