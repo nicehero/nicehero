@@ -18,9 +18,9 @@ if os.name == "nt":
 	os.system("gcc -c include/micro-ecc/uECC.c")
 	os.system("ar -r lib/uECC.lib uECC.o")
 else:
-	os.system("gcc -c include/micro-ecc/uECC.c")
-	os.system("ar -rcs lib/uECC.lib uECC.o")
-	#os.system("gcc -shared -fPIC -o lib/libuECC.so include/micro-ecc/uECC.c")
+	#os.system("gcc -c include/micro-ecc/uECC.c")
+	#os.system("ar -rcs lib/libuECC.a uECC.o")
+	os.system("g++ -shared -fPIC -o lib/libuECC.so include/micro-ecc/uECC.c")
 os.system("rm -rf uECC.o")
 
 print 'end micro-ecc'
@@ -39,9 +39,9 @@ if os.name == "nt":
 	os.system("gcc -c include/tiny_sha3/sha3.c")
 	os.system("ar -r lib/sha3.lib sha3.o")
 else:
-	os.system("gcc -c include/tiny_sha3/sha3.c")
-	os.system("ar -rcs lib/sha3.lib sha3.o")
-	#os.system("gcc -shared -fPIC -o lib/libsha3.so include/tiny_sha3/sha3.c")
+	#os.system("gcc -c include/tiny_sha3/sha3.c")
+	#os.system("ar -rcs lib/libsha3.a sha3.o")
+	os.system("g++ -shared -fPIC -o lib/libsha3.so include/tiny_sha3/sha3.c")
 os.system("rm -rf sha3.o")
 
 
