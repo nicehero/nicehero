@@ -135,7 +135,7 @@ public:
 		ui8 buff[PUBLIC_KEY_SIZE + 8 + HASH_SIZE + SIGN_SIZE] = {0};
 		memcpy(buff, server.m_publicKey, PUBLIC_KEY_SIZE);
 		ui64 now = nNow;
-		*(ui64*)(buff + PUBLIC_KEY_SIZE) = nNow;
+		*(ui64*)(buff + PUBLIC_KEY_SIZE) = now;
 		sha3(buff, PUBLIC_KEY_SIZE + 8, buff + PUBLIC_KEY_SIZE + 8, HASH_SIZE);
 		m_hash = std::string((const char*)(buff + PUBLIC_KEY_SIZE + 8),HASH_SIZE);
 		if (uECC_sign(server.m_privateKey
@@ -292,7 +292,7 @@ public:
 
 	bool TcpSession::parseMsg(unsigned char* data, ui32 len)
 	{
-		if (len > NETWORK_BUF_SIZE)
+		if (len > (ui32)NETWORK_BUF_SIZE)
 		{
 			return false;
 		}
@@ -445,14 +445,14 @@ public:
 		}
 		ui8* data = m_SendList.front().m_buff;
 		ui32 size_ = m_SendList.front().getSize();
-		if (m_SendList.size() > 1 && size_ <= NETWORK_BUF_SIZE)
+		if (m_SendList.size() > 1 && size_ <= (ui32)NETWORK_BUF_SIZE)
 		{
 			ui8 data2[NETWORK_BUF_SIZE];
 			size_ = 0;
 			while (m_SendList.size() > 0)
 			{
 				Message& msg = m_SendList.front();
-				if (size_ + msg.getSize() > NETWORK_BUF_SIZE)
+				if (size_ + msg.getSize() > (ui32)NETWORK_BUF_SIZE)
 				{
 					break;
 				}

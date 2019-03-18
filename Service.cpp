@@ -8,7 +8,7 @@ asio::io_context nicehero::gWorkerServices[nicehero::WORK_THREAD_COUNT];
 
 void nicehero::start(bool background)
 {
-	for (size_t i = 0; i < WORK_THREAD_COUNT;++ i)
+	for (int i = 0; i < WORK_THREAD_COUNT;++ i)
 	{
 		std::thread t([i] {
 			asio::io_context::work work(gWorkerServices[i]);
@@ -35,7 +35,7 @@ void nicehero::start(bool background)
 void nicehero::stop()
 {
 	gService.stop();
-	for (size_t i = 0; i < WORK_THREAD_COUNT; ++i)
+	for (int i = 0; i < WORK_THREAD_COUNT; ++i)
 	{
 		gWorkerServices[i].stop();
 	}
