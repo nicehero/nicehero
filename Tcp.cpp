@@ -311,14 +311,14 @@ public:
 			{
 				return false;
 			}
-			if (msgLen >= len)
+			if (msgLen <= len)
 			{
 				auto recvMsg = std::make_shared<Message>(data, *((unsigned long*)data));
 				
-				nicehero::post([=] {
+				nicehero::post([self,recvMsg] {
 					self->handleMessage(recvMsg);
 				});
-				if (msgLen > len)
+				if (msgLen < len)
 				{
 					return parseMsg( data + msgLen, len - msgLen);
 				}
@@ -456,6 +456,7 @@ public:
 					break;
 				}
 				memcpy(data2 + size_, msg.m_buff, msg.getSize());
+				size_ += msg.getSize();
 				m_SendList.pop_front();
 			}
 			asio::async_write(m_impl->m_socket,asio::buffer(data2, size_)

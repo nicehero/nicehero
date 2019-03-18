@@ -187,3 +187,15 @@ SESSION_COMMAND(MyClient, 100)
 	return true;
 }
 
+static int recv101Num = 0;
+SESSION_COMMAND(MyClient, 101)
+{
+	++recv101Num;
+	return true;
+}
+
+SESSION_COMMAND(MyClient, 102)
+{
+	return true;
+}
+
