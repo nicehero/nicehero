@@ -6,7 +6,9 @@
 #include <micro-ecc/uECC.h>
 #include "Log.h"
 #include <asio/asio.hpp>
+#ifdef WIN32
 #include <windows.h>
+#endif
 #include <chrono>
 #include <iomanip>
 
@@ -142,6 +144,7 @@ int main(int argc, char* argv[])
 		printf("uECC_sign() failed\n");
 		return 1;
 	}
+#ifdef WIN32
 	double dff;
 	LARGE_INTEGER  large_interger;
 	QueryPerformanceFrequency(&large_interger);
@@ -156,7 +159,7 @@ int main(int argc, char* argv[])
 	QueryPerformanceCounter(&large_interger2);
 	__int64  x = large_interger2.QuadPart - large_interger1.QuadPart;
 	printf("%lf\n", x * 1000 / dff);
-
+#endif
  	auto tcpServer = MyServer("0.0.0.0", 7000);
 	tcpServer.accept();
 	auto privateKey1 = tcpServer.GetPrivateKeyString();
