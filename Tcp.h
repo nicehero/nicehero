@@ -6,6 +6,7 @@
 #include "Server.h"
 #include <unordered_map>
 #include <array>
+#include <list>
 #include <atomic>
 #include "Message.h"
 #include "NoCopy.h"
