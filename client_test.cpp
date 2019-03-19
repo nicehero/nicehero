@@ -13,6 +13,7 @@ public:
 
 void MyClient::close()
 {
+	nlog("client close");
 	TcpSessionC::close();
 }
 
