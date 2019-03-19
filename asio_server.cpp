@@ -181,7 +181,6 @@ SESSION_COMMAND(MyClient, 100)
 	return true;
 }
 
-static int recv101Num = 0;
 SESSION_COMMAND(MyClient, 101)
 {
 	MyClient& client = (MyClient&)session;
@@ -193,7 +192,7 @@ SESSION_COMMAND(MyClient, 101)
 SESSION_COMMAND(MyClient, 102)
 {
 	MyClient& client = (MyClient&)session;
-	nlog("recv101 recv101Num:%d", client.recv101Num);
+	nlog("recv102 recv101Num:%d", client.recv101Num);
 	return true;
 }
 
