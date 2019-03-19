@@ -184,7 +184,7 @@ SESSION_COMMAND(MyClient, 100)
 static int recv101Num = 0;
 SESSION_COMMAND(MyClient, 101)
 {
-	nlog("recv101");
+	nlog("recv101 recv101Num:%d", recv101Num);
 	++recv101Num;
 	return true;
 }
