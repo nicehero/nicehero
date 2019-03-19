@@ -23,7 +23,7 @@ int main()
 	nicehero::post([=] {
 		c->connect("127.0.0.1", 7000);
 		c->init();
-		ui32 dat[2] = { 8,0 };
+		ui32 dat[2] = { 32,0 };
 		*(ui16*)(dat + 1) = 100;
 		nicehero::Message msg(dat, 8);
 		c->sendMessage(msg);
