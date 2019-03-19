@@ -33,7 +33,7 @@ int main()
 			nicehero::Message msg(dat, 8);
 			c->sendMessage(msg);
 			*(ui16*)(dat + 1) = 101;
-			for (int i = 0; i < 10000; ++i)
+			for (int i = 0; i < 10; ++i)
 			{
 				nicehero::Message msg2(dat, 8);
 				c->sendMessage(msg2);
