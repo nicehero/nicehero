@@ -6,8 +6,22 @@
 asio::io_context nicehero::gService(1);
 asio::io_context nicehero::gWorkerServices[nicehero::WORK_THREAD_COUNT];
 std::thread nicehero::gMainThread;
+static int checkCPUendian() {
+	union {
+		unsigned int a;
+		unsigned char b;
+	}c;
+	c.a = 1;
+	return (c.b == 1);
+
+}   /*return 1 : little-endian, return 0:big-endian*/
 void nicehero::start(bool background)
 {
+	if (checkCPUendian() == 0)
+	{
+		printf("only support little-endian");
+		return;
+	}
 	for (int i = 0; i < WORK_THREAD_COUNT;++ i)
 	{
 		std::thread t([i] {
