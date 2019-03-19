@@ -188,6 +188,7 @@ SESSION_COMMAND(MyClient, 101)
 
 SESSION_COMMAND(MyClient, 102)
 {
+	nlog("recv101Num:%d",recv101Num);
 	return true;
 }
 
