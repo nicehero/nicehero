@@ -19,25 +19,30 @@ void MyClient::close()
 int main()
 {
 	nicehero::start(true);
-	std::shared_ptr<MyClient> c = std::make_shared<MyClient>();
-	nicehero::post([=] {
-		c->connect("127.0.0.1", 7000);
-		c->init();
-		ui32 dat[2] = { 32,0 };
-		*(ui16*)(dat + 1) = 100;
-		nicehero::Message msg(dat, 8);
-		c->sendMessage(msg);
-		*(ui16*)(dat + 1) = 101;
-		for (int i = 0; i < 10000; ++i)
-		{
-			nicehero::Message msg2(dat, 8);
-			c->sendMessage(msg2);
-		}
-		*(ui16*)(dat + 1) = 102;
-		nicehero::Message msg3(dat, 8);
-		c->sendMessage(msg3);
-		c->startRead(); 
-	});
+	std::vector<std::shared_ptr<MyClient> > cs;
+	for (int i = 0;i < 100; ++ i)
+	{
+		std::shared_ptr<MyClient> c = std::make_shared<MyClient>();
+		cs.push_back(c);
+		nicehero::post([=] {
+			c->connect("127.0.0.1", 7000);
+			c->init();
+			ui32 dat[2] = { 32,0 };
+			*(ui16*)(dat + 1) = 100;
+			nicehero::Message msg(dat, 8);
+			c->sendMessage(msg);
+			*(ui16*)(dat + 1) = 101;
+			for (int i = 0; i < 10000; ++i)
+			{
+				nicehero::Message msg2(dat, 8);
+				c->sendMessage(msg2);
+			}
+			*(ui16*)(dat + 1) = 102;
+			nicehero::Message msg3(dat, 8);
+			c->sendMessage(msg3);
+			c->startRead();
+		});
+	}
 	nicehero::gMainThread.join();
 // 	asio::io_context io(1);
 // 	asio::signal_set signals(io);

@@ -109,6 +109,7 @@ static void fffff()
 }
 int main(int argc, char* argv[])
 {
+	nicehero::start(true);
 	fffff();
 	int c = 0;
 	uint8_t privateKey[32] = { 0 };
@@ -170,7 +171,7 @@ int main(int argc, char* argv[])
 		s.close();
 		nlog("post test");
 	});
-	nicehero::start();
+	nicehero::gMainThread.join();
 	return 0;
 }
 

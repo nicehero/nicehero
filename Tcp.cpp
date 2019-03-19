@@ -36,7 +36,7 @@ namespace nicehero
 	{
 public:
 		TcpServerImpl(asio::ip::address ip,ui16 port,TcpServer& server_)
-			:m_acceptor(getWorkerService(),{ ip,port },false),m_server(server_)
+			:m_acceptor(getWorkerService(),{ ip,port }),m_server(server_)
 		{
 		}
 		~TcpServerImpl()
