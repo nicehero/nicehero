@@ -87,7 +87,7 @@ void lamdbaTest()
 class MyClient :public nicehero::TcpSessionS
 {
 public:
-
+	int recv101Num = 0;
 };
 class MyServer :public nicehero::TcpServer
 {
@@ -184,14 +184,16 @@ SESSION_COMMAND(MyClient, 100)
 static int recv101Num = 0;
 SESSION_COMMAND(MyClient, 101)
 {
-	nlog("recv101 recv101Num:%d", recv101Num);
-	++recv101Num;
+	MyClient& client = (MyClient&)session;
+	nlog("recv101 recv101Num:%d", client.recv101Num);
+	++client.recv101Num;
 	return true;
 }
 
 SESSION_COMMAND(MyClient, 102)
 {
-	nlog("recv101Num:%d",recv101Num);
+	MyClient& client = (MyClient&)session;
+	nlog("recv101 recv101Num:%d", client.recv101Num);
 	return true;
 }
 
