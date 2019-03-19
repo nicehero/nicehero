@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
 
 SESSION_COMMAND(MyClient, 100)
 {
-	nlog("recv100Num");
+	nlog("recv100");
 
 	return true;
 }
@@ -184,6 +184,7 @@ SESSION_COMMAND(MyClient, 100)
 static int recv101Num = 0;
 SESSION_COMMAND(MyClient, 101)
 {
+	nlog("recv101");
 	++recv101Num;
 	return true;
 }
