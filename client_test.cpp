@@ -4,7 +4,6 @@
 #include "Log.h"
 #include <asio/asio.hpp>
 #include "Message.h"
-#include <windows.h>
 
 
 int main()
