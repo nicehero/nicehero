@@ -184,7 +184,7 @@ SESSION_COMMAND(MyClient, 100)
 SESSION_COMMAND(MyClient, 101)
 {
 	MyClient& client = (MyClient&)session;
-	nlog("recv101 recv101Num:%d", client.recv101Num);
+	//nlog("recv101 recv101Num:%d", client.recv101Num);
 	++client.recv101Num;
 	return true;
 }

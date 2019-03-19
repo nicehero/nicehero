@@ -5,7 +5,7 @@
 
 asio::io_context nicehero::gService(1);
 asio::io_context nicehero::gWorkerServices[nicehero::WORK_THREAD_COUNT];
-
+std::thread nicehero::gMainThread;
 void nicehero::start(bool background)
 {
 	for (int i = 0; i < WORK_THREAD_COUNT;++ i)
@@ -23,7 +23,7 @@ void nicehero::start(bool background)
 			asio::io_context::work work(gService);
 			gService.run();
 		});
-		t.detach();
+		gMainThread.swap(t);
 	}
 	else
 	{

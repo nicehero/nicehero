@@ -2,6 +2,7 @@
 #define __NICEMESSAGE____
 #include <memory>
 #include <memory.h>
+#include "Type.h"
 #define MSG_SIZE 32 * 1024
 namespace nicehero
 {
@@ -54,7 +55,7 @@ namespace nicehero
 			}
 		}
 
-		unsigned short getMsgID()
+		ui16 getMsgID()
 		{
 			if (!m_buff)
 			{
@@ -63,7 +64,7 @@ namespace nicehero
 			return *(unsigned short*)(m_buff + 4);
 		}
 
-		unsigned long getSize()
+		ui32 getSize()
 		{
 			if (!m_buff)
 			{
@@ -83,9 +84,9 @@ namespace nicehero
 			msg.m_readPoint = 6;
 		}
 
-		unsigned char* m_buff;
-		unsigned long m_writePoint = 6;
-		unsigned long m_readPoint = 6;
+		ui8* m_buff;
+		ui32 m_writePoint = 6;
+		ui32 m_readPoint = 6;
 	};
 }
 

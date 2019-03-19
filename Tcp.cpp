@@ -302,6 +302,7 @@ public:
 		{
 			if (len < 4)
 			{
+				nlog("TcpSession::parseMsg len < 4");
 				memcpy(&prevMsg.m_writePoint, data, len);
 				prevMsg.m_buff = (unsigned char*)&prevMsg.m_writePoint;
 				prevMsg.m_readPoint = len;
@@ -316,6 +317,10 @@ public:
 			{
 				auto recvMsg = std::make_shared<Message>(data, *((ui32*)data));
 				
+				if (m_MessageParser && m_MessageParser->m_commands[recvMsg->getMsgID()] == nullptr)
+				{
+					nlogerr("TcpSession::parseMsg err 1");
+				}
 				nicehero::post([self,recvMsg] {
 					self->handleMessage(recvMsg);
 				});
@@ -332,6 +337,7 @@ public:
 			{
 				prevMsg.m_buff = new unsigned char[msgLen];
 				memcpy(prevMsg.m_buff, data, len);
+				prevMsg.m_writePoint = len;
 				return true;
 			}
 		}
@@ -341,6 +347,7 @@ public:
 		{
 			if (prevMsg.m_readPoint + len < 4)
 			{
+				nlog("TcpSession::parseMsg prevMsg.m_readPoint + len < 4");
 				memcpy(((unsigned char*)&prevMsg.m_writePoint) + prevMsg.m_readPoint
 					, data, len);
 				prevMsg.m_readPoint = prevMsg.m_readPoint + len;
@@ -362,11 +369,17 @@ public:
 		}
 		if (len + prevMsg.m_writePoint - cutSize >= msgLen)
 		{
-			memcpy(prevMsg.m_buff, data + cutSize, msgLen - prevMsg.m_writePoint);
+			ui32 oldWritePoint = 0;//test value
+			oldWritePoint = prevMsg.m_writePoint;//test value
+			memcpy(prevMsg.m_buff + prevMsg.m_writePoint, data + cutSize, msgLen - prevMsg.m_writePoint);
 			data = data + cutSize + (msgLen - prevMsg.m_writePoint);
 			len = len - cutSize - (msgLen - prevMsg.m_writePoint);
 			auto recvMsg = std::make_shared<Message>();
 			recvMsg->swap(prevMsg);
+			if (m_MessageParser && m_MessageParser->m_commands[recvMsg->getMsgID()] == nullptr)
+			{
+				nlogerr("TcpSession::parseMsg err 2");
+			}
 			nicehero::post([=] {
 				self->handleMessage(recvMsg);
 			});
@@ -376,6 +389,7 @@ public:
 			}
 			return true;
 		}
+		nlog("TcpSession::parseMsg else");
 		memcpy(prevMsg.m_buff + prevMsg.m_writePoint, data + cutSize, len - cutSize);
 		prevMsg.m_writePoint += len - cutSize;
 		return true;
