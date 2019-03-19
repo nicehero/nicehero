@@ -218,6 +218,7 @@ public:
 		t->async_wait([self](std::error_code ec) {
 			if (!ec)
 			{
+				nlog("session connecting timeout");
 				self->close();
 			}
 		});
