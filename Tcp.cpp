@@ -78,9 +78,10 @@ public:
 		{
 			m_impl = std::make_shared<TcpServerImpl>(addr, port,*this);
 		}
-		catch (asio::system_error &)
+		catch (asio::system_error & ec)
 		{
-			nlogerr("cannot open %s:%d",ip.c_str(),int(port));
+			nlogerr("cannot open %s:%d", ip.c_str(), int(port));
+			nlogerr("%s",ec.what());
 		}
 	}
 
