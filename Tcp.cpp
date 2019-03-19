@@ -307,14 +307,14 @@ public:
 				prevMsg.m_readPoint = len;
 				return true;
 			}
-			unsigned long msgLen = *((unsigned long*)data);
+			ui32 msgLen = *((ui32*)data);
 			if (msgLen > MSG_SIZE)
 			{
 				return false;
 			}
 			if (msgLen <= len)
 			{
-				auto recvMsg = std::make_shared<Message>(data, *((unsigned long*)data));
+				auto recvMsg = std::make_shared<Message>(data, *((ui32*)data));
 				
 				nicehero::post([self,recvMsg] {
 					self->handleMessage(recvMsg);
@@ -335,8 +335,8 @@ public:
 				return true;
 			}
 		}
-		unsigned long msgLen = 0;
-		unsigned long cutSize = 0;
+		ui32 msgLen = 0;
+		ui32 cutSize = 0;
 		if (prevMsg.m_buff == (unsigned char*)&prevMsg.m_writePoint)
 		{
 			if (prevMsg.m_readPoint + len < 4)
@@ -394,6 +394,11 @@ public:
 	{
 		if (m_MessageParser)
 		{
+			if (m_MessageParser->m_commands[msg->getMsgID()] == nullptr)
+			{
+				nlogerr("TcpSession::handleMessage undefined msg:%d", ui32(msg->getMsgID()));
+				return;
+			}
 			m_MessageParser->m_commands[msg->getMsgID()](*this, *msg.get());
 		}
 	}
@@ -613,6 +618,16 @@ public:
 		}
 	}
 
+
+	void TcpSessionC::startRead()
+	{
+		doRead();
+	}
+
+	void TcpSessionC::removeSelf()
+	{
+		close();
+	}
 
 	int TcpSessionC::checkServerSign(ui8* data_)
 	{

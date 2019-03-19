@@ -91,8 +91,10 @@ namespace nicehero
 		
 		bool connect(const std::string& ip, ui16 port);
 		void init(bool isSync = false);
-
+		void startRead();
 		std::atomic<bool> m_isInit;
+	protected:
+		void removeSelf();
 	private:
 		int checkServerSign(ui8* data_);//return 0 ok 1 error 2 warnning
 	};

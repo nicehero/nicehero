@@ -5,10 +5,20 @@
 #include <asio/asio.hpp>
 #include "Message.h"
 
+class MyClient :public nicehero::TcpSessionC
+{
+public:
+	void close();
+};
+
+void MyClient::close()
+{
+	TcpSessionC::close();
+}
 
 int main()
 {
-	std::shared_ptr<nicehero::TcpSessionC> c = std::make_shared<nicehero::TcpSessionC>();
+	std::shared_ptr<MyClient> c = std::make_shared<MyClient>();
 	std::shared_ptr<nicehero::TcpSession> c2(c->shared_from_this());
 	c->connect("127.0.0.1", 7000);
 	c->init();
@@ -25,6 +35,7 @@ int main()
 	*(ui16*)(dat + 1) = 102;
 	nicehero::Message msg3(dat, 8);
 	c->sendMessage(msg3);
+	c->startRead();
 	nicehero::start();
 // 	asio::io_context io(1);
 // 	asio::signal_set signals(io);
