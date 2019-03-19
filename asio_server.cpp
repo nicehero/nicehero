@@ -176,6 +176,8 @@ int main(int argc, char* argv[])
 
 SESSION_COMMAND(MyClient, 100)
 {
+	nlog("recv100Num");
+
 	return true;
 }
 
