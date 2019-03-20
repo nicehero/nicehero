@@ -31,7 +31,8 @@ print 'end micro-ecc'
 print 'download asio'
 do_os("wget https://github.com/chriskohlhoff/asio/archive/asio-1-12-2.tar.gz")
 do_os("tar xvf asio-1-12-2.tar.gz")
-do_os("mv asio-asio-1-12-2/asio/include include/asio")
+do_os("mv asio-asio-1-12-2/asio/include/asio include/")
+do_os("mv asio-asio-1-12-2/asio/include/asio.hpp include/asio/")
 do_os("rm -rf asio-asio-1-12-2")
 do_os("rm -rf asio-1-12-2.tar.gz")
 
@@ -48,6 +49,7 @@ else:
 do_os("rm -rf sha3.o")
 
 print 'download mongo-c' #mongo-c-driver-1.14.0.tar.gz
+do_os("wget https://github.com/mongodb/mongo-c-driver/releases/download/1.14.0/mongo-c-driver-1.14.0.tar.gz")
 print 'build mongoc'
 do_os('tar xvf mongo-c-driver-1.14.0.tar.gz')
 do_os('mkdir build_mongoc')
