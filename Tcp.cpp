@@ -7,7 +7,7 @@
 #include "Message.h"
 #include "Clock.h"
 #include <map>
-
+#include <asio/yield.hpp>
 extern "C"
 {
 	extern void *sha3(const void *in, size_t inlen, void *md, int mdlen);
@@ -323,6 +323,7 @@ public:
 // 				{
 // 					nlogerr("TcpSession::parseMsg err 1");
 // 				}
+
 				nicehero::post([self,recvMsg] {
 					self->handleMessage(recvMsg);
 				});
@@ -382,6 +383,7 @@ public:
 // 			{
 // 				nlogerr("TcpSession::parseMsg err 2");
 // 			}
+
 			nicehero::post([=] {
 				self->handleMessage(recvMsg);
 			});

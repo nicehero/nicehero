@@ -6,6 +6,7 @@
 #include <micro-ecc/uECC.h>
 #include "Log.h"
 #include <asio/asio.hpp>
+#include <asio/yield.hpp>
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -107,8 +108,46 @@ static void fffff()
 {
 	printf("fffff\n");
 }
+
+struct task : asio::coroutine
+{
+	bool operator()()
+	{
+		int v = 11;
+		reenter(this)
+		{
+			printf("t1:%d\n",v);
+			v += 1;//ÎÞ·¨±£´æ×´Ì¬
+			yield return true;;
+			printf("t2:%d\n", v);
+			return true;
+		}
+		return true;
+	}
+};
+
+namespace nnn {
+	namespace {
+		class noNameClass
+		{
+		public:
+			noNameClass()
+			{
+				noName = 1;
+			}
+			int noName = 0;
+		};
+		noNameClass noNameObj;
+	}
+}
+
 int main(int argc, char* argv[])
 {
+	task t;
+	t();
+	t();
+	t();
+
 	nicehero::start(true);
 	fffff();
 	int c = 0;
@@ -190,6 +229,7 @@ SESSION_COMMAND(MyClient, 101)
 	return true;
 }
 static int numClients = 0;
+
 SESSION_COMMAND(MyClient, 102)
 {
 	MyClient& client = (MyClient&)session;

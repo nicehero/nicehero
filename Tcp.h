@@ -11,7 +11,6 @@
 #include "Message.h"
 #include "NoCopy.h"
 #include <functional>
-
 namespace nicehero
 {
 	class TcpSession;
@@ -132,8 +131,18 @@ static bool _##CLASS##_##COMMAND##FUNC(nicehero::TcpSession& session, nicehero::
 static nicehero::TcpSessionCommand _##CLASS##_##COMMAND(typeid(CLASS), COMMAND, _##CLASS##_##COMMAND##FUNC);\
 static bool _##CLASS##_##COMMAND##FUNC(nicehero::TcpSession& session, nicehero::Message& msg)
 
+
 #ifndef SESSION_COMMAND
 #define SESSION_COMMAND TCP_SESSION_COMMAND
 #endif
 
+#define TCP_SESSION_YIELDCMD(CLASS,COMMAND) \
+namespace{\
+class _##CLASS##_##COMMAND##TASK:asio::coroutine\
+{\
+	bool exe(nicehero::TcpSession& session, nicehero::Message& msg);\
+};\
+static nicehero::TcpSessionCommand _##CLASS##_##COMMAND(typeid(CLASS), COMMAND, _##CLASS##_##COMMAND##FUNC);\
+bool _##CLASS##_##COMMAND##TASK::exe(nicehero::TcpSession& session, nicehero::Message& msg){\
+	reenter(this){
 #endif
