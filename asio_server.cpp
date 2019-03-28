@@ -12,6 +12,7 @@
 #endif
 #include <chrono>
 #include <iomanip>
+#include "TestProtocol.h"
 
 void some_sync(std::function<void()> f)
 {
@@ -213,10 +214,10 @@ int main(int argc, char* argv[])
 	nicehero::gMainThread.join();
 	return 0;
 }
-
-SESSION_COMMAND(MyClient, 100)
+using namespace Proto;
+SESSION_COMMAND(MyClient, XDataID)
 {
-	nlog("recv100");
+	nlog("recv100 size:%d",int(msg.getSize()));
 
 	return true;
 }
@@ -235,6 +236,10 @@ SESSION_COMMAND(MyClient, 102)
 	MyClient& client = (MyClient&)session;
 	++numClients;
 	nlog("recv102 recv101Num:%d,%d", client.recv101Num,numClients);
+	XData d;
+	d.n1 = 2;
+	d.s1 = "xxxx";
+	client.sendMessage(d);
 	return true;
 }
 

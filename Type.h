@@ -2,7 +2,7 @@
 #define _____TYPE_____
 
 #include <stdint.h>
-
+#include <string>
 const int NETWORK_BUF_SIZE = 1024 * 16;
 
 typedef uint8_t ui8;

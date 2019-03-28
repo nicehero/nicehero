@@ -539,6 +539,13 @@ public:
 		doSend(msg);
 	}
 
+	void TcpSession::sendMessage(Serializable& msg)
+	{
+		Message msg_;
+		msg.toMsg(msg_);
+		sendMessage(msg_);
+	}
+
 	TcpSessionC::TcpSessionC()
 	{
 		m_isInit = false;

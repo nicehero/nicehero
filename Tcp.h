@@ -47,6 +47,7 @@ namespace nicehero
 		virtual void close();
 		virtual void setMessageParser(TcpMessageParser* messageParser);
 		virtual void sendMessage(Message& msg);
+		virtual void sendMessage(Serializable& msg);
 		TcpMessageParser* m_MessageParser = nullptr;
 		std::string& getUid();
 	protected:

@@ -4,7 +4,7 @@
 #include "Log.h"
 #include <asio/asio.hpp>
 #include "Message.h"
-
+#include "TestProtocol.h"
 class MyClient :public nicehero::TcpSessionC
 {
 public:
@@ -16,7 +16,6 @@ void MyClient::close()
 	nlog("client close");
 	TcpSessionC::close();
 }
-
 int main()
 {
 	nicehero::start(true);
@@ -28,12 +27,13 @@ int main()
 		nicehero::post([=] {
 			c->connect("127.0.0.1", 7000);
 			c->init();
+			Proto::XData xxx;
+			xxx.n1 = 1;
+			xxx.s1 = "666";
+			c->sendMessage(xxx);
 			ui32 dat[2] = { 32,0 };
-			*(ui16*)(dat + 1) = 100;
-			nicehero::Message msg(dat, 8);
-			c->sendMessage(msg);
 			*(ui16*)(dat + 1) = 101;
-			for (int i = 0; i < 10000; ++i)
+			for (int i = 0; i < 100; ++i)
 			{
 				nicehero::Message msg2(dat, 8);
 				c->sendMessage(msg2);
@@ -58,4 +58,12 @@ int main()
 // 	asio::io_context::work w(io);
 // 	io.run();
 	return 0;
+}
+
+using namespace Proto;
+
+SESSION_COMMAND(MyClient, XDataID)
+{
+	nlog("recv XDataID size:%d", int(msg.getSize()));
+	return true;
 }
