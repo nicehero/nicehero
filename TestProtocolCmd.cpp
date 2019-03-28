@@ -1,4 +1,4 @@
-#include "TestProtocol.h"
+#include "Type.h"
 namespace Proto {
-	const ui16 XDataID = 100;
+	extern const ui16 XDataID = 100;
 }
