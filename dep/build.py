@@ -68,7 +68,7 @@ if os.name == "nt":
 	do_os('rm -rf build_mongoc')
 else:
 	p = os.getcwd()
-	do_os('cmake "-DCMAKE_INSTALL_PREFIX=%s/../mongo-c-driver" "-DCMAKE_PREFIX_PATH=%s/../mongo-c-driver" ../mongo-c-driver-1.14.0'%(p,p))
+	do_os('cmake "-DCMAKE_INSTALL_PREFIX=%s/../mongo-c-driver" "-DCMAKE_PREFIX_PATH=%s/../mongo-c-driver" "-DCMAKE_BUILD_TYPE=Release" ../mongo-c-driver-1.14.0'%(p,p))
 	do_os('make install')
 	os.chdir('../')
 	do_os('mv mongo-c-driver/include/libmongoc-1.0/mongoc include/')
