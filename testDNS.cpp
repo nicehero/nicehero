@@ -2,11 +2,20 @@
 #include <asio/asio.hpp>
 #include <stdio.h>
 #include <iostream>
+#include "a.h"
 using namespace std;
 using namespace asio;
 int main()
 {
-    asio::io_service ios;
+	extern A* aa();
+	extern A* bb();
+	A* a = aa();
+	A* b = bb();
+	a->foo();
+	b->foo();
+	delete a;
+	delete b;
+	asio::io_service ios;
     //创建resolver对象
     ip::tcp::resolver slv(ios);
     //创建query对象

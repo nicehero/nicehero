@@ -13,7 +13,8 @@
 #include <chrono>
 #include <iomanip>
 #include "TestProtocol.h"
-
+#include <mongoc/mongoc.h>
+#include "Bson.hpp"
 void some_sync(std::function<void()> f)
 {
 	f();
@@ -211,6 +212,53 @@ int main(int argc, char* argv[])
 		s.close();
 		nlog("post test");
 	});
+	mongoc_init();
+	auto uri = mongoc_uri_new("mongodb://dev:devv@192.168.9.5/?authSource=admin");
+	mongoc_uri_set_appname(uri, "connect-example");
+	mongoc_uri_set_option_as_int32(uri, MONGOC_URI_MAXPOOLSIZE, 100);
+	auto pool = mongoc_client_pool_new(uri);
+	bson_error_t error;
+	if (pool)
+	{
+		auto client = mongoc_client_pool_pop(pool);
+		if (client)
+		{
+			//mongoc_client_set_appname(client, "connect-example");
+			auto database = mongoc_client_get_database(client, "testc");
+			auto collection = mongoc_client_get_collection(client, "testc", "testcoll");
+			if (database && collection)
+			{
+				auto insert = NBSON(
+					"hello", BCON_UTF8("world")
+					, "ar",
+					"["
+					, "{"
+					, "hello", BCON_INT64(666)
+					, "}"
+					, "world5",
+					"]"
+					);
+				std::string s = insert->asString("ar.1");
+				mongoc_collection_insert(collection, MONGOC_INSERT_NONE, *insert, NULL, &error);
+				auto cursor = mongoc_collection_find_with_opts(collection,
+					*NBSON("_id", BCON_INT32(1)), nullptr, nullptr
+					);
+				const bson_t *doc = nullptr;
+				while (mongoc_cursor_next(cursor, &doc)) {
+					auto str = bson_as_canonical_extended_json(doc, nullptr);
+					printf("%s\n", str);
+					bson_free(str);
+				}
+				mongoc_cursor_destroy(cursor);
+			}
+			mongoc_collection_destroy(collection);
+			mongoc_database_destroy(database);
+			mongoc_client_pool_push(pool, client);
+		}
+		mongoc_client_pool_destroy(pool);
+		mongoc_uri_destroy(uri);
+	}
+	mongoc_cleanup();
 	nicehero::gMainThread.join();
 	return 0;
 }

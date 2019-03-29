@@ -122,6 +122,9 @@ namespace nicehero
 	struct Serializable
 	{
 	public:
+		virtual ~Serializable() {
+
+		}
 		ui32 getSize(const std::string& s) const
 		{
 			return (ui32)s.size() + 4;
