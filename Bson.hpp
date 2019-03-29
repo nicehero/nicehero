@@ -109,6 +109,6 @@ namespace nicehero
 	};
 }
 #ifndef NBSON
-#define NBSON(...) std::unique_ptr<::nicehero::Bson>(new ::nicehero::Bson(bcon_new (NULL, __VA_ARGS__, (void *) NULL))) //BCON_NEW
+#define NBSON(...) std::unique_ptr< ::nicehero::Bson >(new ::nicehero::Bson(bcon_new (NULL, __VA_ARGS__, (void *) NULL))) //BCON_NEW
 #endif
 #endif // !___NICE__BSON_HPP__
