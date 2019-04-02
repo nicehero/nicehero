@@ -230,14 +230,19 @@ int main(int argc, char* argv[])
 			{
 				auto insert = NBSON(
 					"hello", BCON_UTF8("world")
-					, "ar",
-					"["
+					, "ar"
+					,"["
 					, "{"
 					, "hello", BCON_INT64(666)
 					, "}"
-					, "world5",
-					"]"
+					, "world5"
+					, BCON_DATE_TIME(time(nullptr) * 1000)
+					,"]"
 					);
+				bson_append_now_utc(insert->m_bson, "nn", 2);
+				auto j = bson_as_json(insert->m_bson, nullptr);
+				nlog(j);
+				bson_free(j);
 				std::string s = insert->asString("ar.1");
 				mongoc_collection_insert(collection, MONGOC_INSERT_NONE, *insert, NULL, &error);
 				auto cursor = mongoc_collection_find_with_opts(collection,
