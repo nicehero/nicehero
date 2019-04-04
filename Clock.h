@@ -8,6 +8,7 @@ namespace nicehero
 	{
 	public:
 		ui64 getTime();
+		ui64 getTimeMS();
 	};
 
 

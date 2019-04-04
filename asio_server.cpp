@@ -14,7 +14,9 @@
 #include <iomanip>
 #include "TestProtocol.h"
 #include <mongoc/mongoc.h>
-#include "Bson.hpp"
+#include "Mongo.hpp"
+#include "Clock.h"
+
 void some_sync(std::function<void()> f)
 {
 	f();
@@ -189,7 +191,7 @@ int main(int argc, char* argv[])
 	__int64  x = large_interger2.QuadPart - large_interger1.QuadPart;
 	printf("%lf\n", x * 1000 / dff);
 #endif
- 	auto tcpServer = MyServer("0.0.0.0", 7000);
+	auto tcpServer = MyServer("0.0.0.0", 7000);
 	tcpServer.accept();
 	auto privateKey1 = tcpServer.GetPrivateKeyString();
 	tcpServer.SetPrivateKeyString(privateKey1);
@@ -212,58 +214,47 @@ int main(int argc, char* argv[])
 		s.close();
 		nlog("post test");
 	});
-	mongoc_init();
-	auto uri = mongoc_uri_new("mongodb://dev:devv@192.168.9.5/?authSource=admin");
-	mongoc_uri_set_appname(uri, "connect-example");
-	mongoc_uri_set_option_as_int32(uri, MONGOC_URI_MAXPOOLSIZE, 100);
-	auto pool = mongoc_client_pool_new(uri);
-	bson_error_t error;
-	if (pool)
 	{
-		auto client = mongoc_client_pool_pop(pool);
-		if (client)
-		{
-			//mongoc_client_set_appname(client, "connect-example");
-			auto database = mongoc_client_get_database(client, "testc");
-			auto collection = mongoc_client_get_collection(client, "testc", "testcoll");
-			if (database && collection)
-			{
-				auto insert = NBSON(
-					"hello", BCON_UTF8("world")
-					, "ar"
-					,"["
+		nicehero::MongoConnectionPool pool;
+		pool.init("mongodb://dev:devv@192.168.9.5/?authSource=admin", "easy");
+		pool.insert("easy",
+			NBSON_T(
+				"_id", BCON_INT64(103)
+				, "hello", BCON_UTF8("world")
+				, "ar"
+				, "["
 					, "{"
-					, "hello", BCON_INT64(666)
+						, "hello", BCON_INT64(666)
 					, "}"
 					, "world5"
-					, BCON_DATE_TIME(time(nullptr) * 1000)
-					,"]"
-					);
-				bson_append_now_utc(insert->m_bson, "nn", 2);
-				auto j = bson_as_json(insert->m_bson, nullptr);
-				nlog(j);
-				bson_free(j);
-				std::string s = insert->asString("ar.1");
-				mongoc_collection_insert(collection, MONGOC_INSERT_NONE, *insert, NULL, &error);
-				auto cursor = mongoc_collection_find_with_opts(collection,
-					*NBSON("_id", BCON_INT32(1)), nullptr, nullptr
-					);
-				const bson_t *doc = nullptr;
-				while (mongoc_cursor_next(cursor, &doc)) {
-					auto str = bson_as_canonical_extended_json(doc, nullptr);
-					printf("%s\n", str);
-					bson_free(str);
-				}
-				mongoc_cursor_destroy(cursor);
+					, BCON_DATE_TIME(nicehero::Clock::getInstance()->getTimeMS())
+				, "]"
+				, "oo"
+				, "{"
+					,"xhello", BCON_INT64(666)
+				, "}"
+				));
+		auto obj = NBSON("$set", "{", "ar.0.hello", BCON_INT64(101), "}");
+		pool.update("easy",
+			NBSON_T("_id", BCON_INT64(103)),
+			*obj);
+		auto cursor = pool.find("easy", NBSON_T("_id", BCON_INT64(103)), nicehero::Bson(nullptr));
+		while (auto r = cursor->fetch())
+		{
+			if (r->isInt64("oo.xhello"))
+			{
+				printf("oo.xhello: %"\
+					PRIu64\
+					"\n", r->asInt64("oo.xhello"));
 			}
-			mongoc_collection_destroy(collection);
-			mongoc_database_destroy(database);
-			mongoc_client_pool_push(pool, client);
+			if (r->isInt64("ar.0.hello"))
+			{
+				printf("ar.0.hello: %"\
+					PRIu64\
+					"\n", r->asInt64("ar.0.hello"));
+			}
 		}
-		mongoc_client_pool_destroy(pool);
-		mongoc_uri_destroy(uri);
 	}
-	mongoc_cleanup();
 	nicehero::gMainThread.join();
 	return 0;
 }

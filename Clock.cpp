@@ -9,5 +9,9 @@ namespace nicehero
 		return time(0);
 	}
 
+	ui64 Clock::getTimeMS()
+	{
+		return time(0) * 1000;
+	}
 
 }

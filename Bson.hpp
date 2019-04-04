@@ -25,6 +25,10 @@ namespace nicehero
 		{
 			return m_bson;
 		}
+		operator bson_t*() const
+		{
+			return m_bson;
+		}
 		bool isString(const char* dotkey)
 		{
 			bson_iter_t iter, iter2;
@@ -34,7 +38,7 @@ namespace nicehero
 			{
 				return false;
 			}
-			return iter2.value.value_type == BSON_TYPE_UTF8;
+			return bson_iter_type(&iter2) == BSON_TYPE_UTF8;
 		}
 		std::string asString(const char* dotkey)
 		{
@@ -57,7 +61,7 @@ namespace nicehero
 			{
 				return false;
 			}
-			return iter2.value.value_type == BSON_TYPE_INT64;
+			return bson_iter_type(&iter2) == BSON_TYPE_INT64;
 		}
 
 		i64 asInt64(const char* dotkey)
@@ -107,8 +111,10 @@ namespace nicehero
 
 		bson_t* m_bson = nullptr;
 	};
+	typedef std::unique_ptr<Bson> BsonPtr;
 }
 #ifndef NBSON
-#define NBSON(...) std::unique_ptr< ::nicehero::Bson >(new ::nicehero::Bson(bcon_new (NULL, __VA_ARGS__, (void *) NULL))) //BCON_NEW
+#define NBSON(...) nicehero::BsonPtr(new ::nicehero::Bson(bcon_new (NULL, __VA_ARGS__, (void *) NULL))) //BCON_NEW
+#define NBSON_T(...) ::nicehero::Bson(bcon_new (NULL, __VA_ARGS__, (void *) NULL)) //BCON_NEW
 #endif
 #endif // !___NICE__BSON_HPP__

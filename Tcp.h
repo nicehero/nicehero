@@ -28,9 +28,9 @@ namespace nicehero
 	class TcpSessionCommand
 	{
 	public:
-		TcpSessionCommand(const std::type_info & info,	//!< 类型信息
-			ui16 command,					//!< 网络消息ID
-			tcpcommand fucnc			//!< 处理函数)
+		TcpSessionCommand(const std::type_info & info,	
+			ui16 command,					
+			tcpcommand fucnc			
 			);
 	};
 	class TcpSession
@@ -119,7 +119,7 @@ namespace nicehero
 		std::unordered_map<tcpuid, std::shared_ptr<TcpSession> > m_sessions;
 	};
 	TcpMessageParser& getMessagerParse(const std::type_info& typeInfo);
-	inline TcpSessionCommand::TcpSessionCommand(const std::type_info & info, /*!< 类型信息 */ ui16 command, /*!< 网络消息ID */ tcpcommand func /*!< 处理函数) */)
+	inline TcpSessionCommand::TcpSessionCommand(const std::type_info & info,  ui16 command, tcpcommand func )
 	{
 		TcpMessageParser& msgParser = getMessagerParse(info);
 		msgParser.m_commands[command] = func;
