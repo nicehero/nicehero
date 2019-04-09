@@ -243,15 +243,11 @@ int main(int argc, char* argv[])
 		{
 			if (r->isInt64("oo.xhello"))
 			{
-				printf("oo.xhello: %"\
-					PRIu64\
-					"\n", r->asInt64("oo.xhello"));
+				printf("oo.xhello: %d\n", int(r->asInt64("oo.xhello")));
 			}
 			if (r->isInt64("ar.0.hello"))
 			{
-				printf("ar.0.hello: %"\
-					PRIu64\
-					"\n", r->asInt64("ar.0.hello"));
+				printf("ar.0.hello: %d\n", int(r->asInt64("ar.0.hello")));
 			}
 		}
 	}
