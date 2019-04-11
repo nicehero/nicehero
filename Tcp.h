@@ -14,8 +14,8 @@
 namespace nicehero
 {
 	class TcpSession;
-	typedef std::string tcpuid ;
-	typedef bool(*tcpcommand)(TcpSession&, Message&);
+	using tcpuid = std::string;
+	using tcpcommand = bool(*)(TcpSession&, Message&);
 	//typedef std::function<bool(TcpSession&, Message&)> tcpcommand;
 	class TcpServer;
 	class TcpSessionImpl;

@@ -25,7 +25,7 @@ namespace nicehero
 	};
 
 
-	typedef std::shared_ptr<MongoCursor> MongoCursorPtr;
+	using MongoCursorPtr = std::shared_ptr<MongoCursor>;
 
 	class MongoConnectionPool
 	{
