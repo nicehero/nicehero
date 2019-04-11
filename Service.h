@@ -19,6 +19,7 @@ namespace nicehero
 		TO_MAIN,
 		TO_WORKER,
 		TO_DB,
+		TO_MULTIWORKER,
 	};
 	const int WORK_THREAD_COUNT = 8;
 	const int DB_THREAD_COUNT = 16;

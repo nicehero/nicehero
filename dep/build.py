@@ -87,6 +87,9 @@ do_os("mv kcp-1.3 include/kcp")
 do_os("rm -rf 1.3.tar.gz")
 print 'build kcp'
 if os.name == "nt":
+	body = open("include/kcp/ikcp.c","rb").read()
+	body = body.replace("vsprintf(buffer","vsnprintf(buffer,1024")
+	open("include/kcp/ikcp.c","wb").write(body)
 	do_os("gcc -c include/kcp/ikcp.c")
 	do_os("ar -r lib/ikcp.lib ikcp.o")
 else:

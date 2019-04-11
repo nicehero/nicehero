@@ -13,8 +13,11 @@
 #include <functional>
 namespace nicehero
 {
+	const i32 IKCP_OVERHEAD = 68;
+	const i32 INVALID_CONV = (~0);
+
 	class KcpSession;
-	using kcpuid = ui32;
+	using kcpuid = std::string;
 	using kcpcommand = bool(*)(KcpSession&, Message&);
 
 	class KcpServer;
@@ -51,9 +54,11 @@ namespace nicehero
 		KcpMessageParser* m_MessageParser = nullptr;
 		kcpuid& getUid();
 	protected:
+		void init_kcp();
 		std::shared_ptr<KcpSessionImpl> m_impl;
 		std::string m_hash;
 		kcpuid m_uid;
+		ui32 m_conv = INVALID_CONV;
 		ui64 m_serialID;
 		Message m_PreMsg;
 		bool parseMsg(unsigned char* data, ui32 len);
@@ -96,7 +101,7 @@ namespace nicehero
 	protected:
 		void removeSelf();
 	private:
-		int checkServerSign(ui8* data_);//return 0 ok 1 error 2 warnning
+		int checkServerSign(ui8* data_);//return 0 ok 1 error 2 warning
 	};
 	class KcpServer
 		:public Server
@@ -117,6 +122,10 @@ namespace nicehero
 		virtual void removeSession(const kcpuid& uid,ui64 serialID);
 		virtual void accept();
 		std::unordered_map<kcpuid, std::shared_ptr<KcpSession> > m_sessions;
+
+		ui32 getFreeUid();
+		ui32 m_maxSessions = 10000;
+		ui32 m_nextConv = 1;
 	};
 	KcpMessageParser& getKcpMessagerParse(const std::type_info& typeInfo);
 	inline KcpSessionCommand::KcpSessionCommand(const std::type_info & info,  ui16 command, kcpcommand func )

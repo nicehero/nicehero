@@ -17,6 +17,7 @@
 #include "Mongo.hpp"
 #include "Clock.h"
 #include "Kcp.h"
+#include <kcp/ikcp.h>
 
 void some_sync(std::function<void()> f)
 {
@@ -145,7 +146,19 @@ namespace nnn {
 		noNameClass noNameObj;
 	}
 }
-
+void kcpTest()
+{
+	int iii = 0;
+	auto kcp1 = ikcp_create(1, &iii);
+	iii = ikcp_nodelay(kcp1, 1, 0, 2, 1);
+	auto kcp2 = ikcp_create(1, &iii);
+	iii = ikcp_nodelay(kcp2, 1, 0, 2, 1);
+	IUINT32 current = (IUINT32)nicehero::Clock::getInstance()->getTimeMS();
+	ikcp_update(kcp1, current);
+	IUINT32 next = ikcp_check(kcp1, current);
+	ikcp_release(kcp1);
+	ikcp_release(kcp2);
+}
 int main(int argc, char* argv[])
 {
 	task t;

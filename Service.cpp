@@ -90,6 +90,9 @@ void nicehero::post(std::function<void()> f, ToService to)
 		}
 		break;
 	default:
+		{
+			gMultiWorkerService.post(f);
+		}
 		break;
 	}
 }
