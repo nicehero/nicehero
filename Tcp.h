@@ -118,10 +118,10 @@ namespace nicehero
 		virtual void accept();
 		std::unordered_map<tcpuid, std::shared_ptr<TcpSession> > m_sessions;
 	};
-	TcpMessageParser& getMessagerParse(const std::type_info& typeInfo);
+	TcpMessageParser& getTcpMessagerParse(const std::type_info& typeInfo);
 	inline TcpSessionCommand::TcpSessionCommand(const std::type_info & info,  ui16 command, tcpcommand func )
 	{
-		TcpMessageParser& msgParser = getMessagerParse(info);
+		TcpMessageParser& msgParser = getTcpMessagerParse(info);
 		msgParser.m_commands[command] = func;
 	}
 

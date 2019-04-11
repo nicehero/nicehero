@@ -4,6 +4,7 @@
 #include <random>
 
 asio::io_context nicehero::gService(1);
+asio::io_context nicehero::gMultiWorkerService(nicehero::WORK_THREAD_COUNT);
 asio::io_context nicehero::gWorkerServices[nicehero::WORK_THREAD_COUNT];
 asio::io_context nicehero::gDBServices[nicehero::DB_THREAD_COUNT];
 std::thread nicehero::gMainThread;
@@ -30,6 +31,11 @@ void nicehero::start(bool background)
 			gWorkerServices[i].run();
 		});
 		t.detach();
+		std::thread t2([] {
+			asio::io_context::work work2(gMultiWorkerService);
+			gMultiWorkerService.run();
+		});
+		t2.detach();
 	}
 	for (int i = 0; i < DB_THREAD_COUNT; ++i)
 	{

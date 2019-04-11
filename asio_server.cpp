@@ -16,6 +16,7 @@
 #include <mongoc/mongoc.h>
 #include "Mongo.hpp"
 #include "Clock.h"
+#include "Kcp.h"
 
 void some_sync(std::function<void()> f)
 {
@@ -193,6 +194,8 @@ int main(int argc, char* argv[])
 #endif
 	auto tcpServer = MyServer("0.0.0.0", 7000);
 	tcpServer.accept();
+	auto kcpServer = nicehero::KcpServer("0.0.0.0", 7001);
+ 	kcpServer.accept();
 	auto privateKey1 = tcpServer.GetPrivateKeyString();
 	tcpServer.SetPrivateKeyString(privateKey1);
 	auto privateKey2 = tcpServer.GetPrivateKeyString();
