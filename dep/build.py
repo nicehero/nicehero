@@ -80,6 +80,20 @@ else:
 do_os('rm -rf mongo-c-driver-1.14.0')
 do_os('rm -rf mongo-c-driver-1.14.0.tar.gz')
 
+print 'download kcp'
+do_os("wget https://github.com/skywind3000/kcp/archive/1.3.tar.gz")
+do_os("tar xvf 1.3.tar.gz")
+do_os("mv kcp-1.3 include/kcp")
+do_os("rm -rf 1.3.tar.gz")
+print 'build kcp'
+if os.name == "nt":
+	do_os("gcc -c include/kcp/ikcp.c")
+	do_os("ar -r lib/ikcp.lib ikcp.o")
+else:
+	do_os("gcc -shared -fPIC -o lib/libikcp.so include/kcp/ikcp.c")
+do_os("rm -rf ikcp.o")
+
+
 
 do_os("echo 0.1 > done")
 print 'done'
