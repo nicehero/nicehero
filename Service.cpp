@@ -5,6 +5,7 @@
 
 asio::io_context nicehero::gService(1);
 asio::io_context nicehero::gWorkerServices[nicehero::WORK_THREAD_COUNT];
+asio::io_context nicehero::gDBServices[nicehero::DB_THREAD_COUNT];
 std::thread nicehero::gMainThread;
 static int checkCPUendian() {
 	union {
@@ -22,11 +23,19 @@ void nicehero::start(bool background)
 		printf("only support little-endian");
 		return;
 	}
-	for (int i = 0; i < WORK_THREAD_COUNT;++ i)
+	for (int i = 0; i < WORK_THREAD_COUNT; ++i)
 	{
 		std::thread t([i] {
 			asio::io_context::work work(gWorkerServices[i]);
 			gWorkerServices[i].run();
+		});
+		t.detach();
+	}
+	for (int i = 0; i < DB_THREAD_COUNT; ++i)
+	{
+		std::thread t([i] {
+			asio::io_context::work work(gDBServices[i]);
+			gDBServices[i].run();
 		});
 		t.detach();
 	}
@@ -55,13 +64,38 @@ void nicehero::stop()
 	}
 }
 
-void nicehero::post(std::function<void()> f)
+void nicehero::post(std::function<void()> f, ToService to)
 {
-	gService.post(f);
+	switch (to)
+	{
+	case nicehero::TO_MAIN:
+		{
+			gService.post(f);
+		}
+		break;
+	case nicehero::TO_WORKER:
+		{
+			getWorkerService().post(f);
+		}
+		break;
+	case nicehero::TO_DB:
+		{
+			getDBService().post(f);
+		}
+		break;
+	default:
+		break;
+	}
 }
 
 asio::io_context& nicehero::getWorkerService()
 {
 	static std::default_random_engine e;
 	return gWorkerServices[e() % WORK_THREAD_COUNT];
+}
+
+asio::io_context& nicehero::getDBService()
+{
+	static std::default_random_engine e;
+	return gDBServices[e() % DB_THREAD_COUNT];
 }

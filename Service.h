@@ -14,14 +14,23 @@ namespace asio
 
 namespace nicehero
 {
+	enum ToService
+	{
+		TO_MAIN,
+		TO_WORKER,
+		TO_DB,
+	};
 	const int WORK_THREAD_COUNT = 8;
+	const int DB_THREAD_COUNT = 16;
 	extern asio::io_context gService;
 	extern asio::io_context gWorkerServices[nicehero::WORK_THREAD_COUNT];
+	extern asio::io_context gDBServices[nicehero::DB_THREAD_COUNT];
 	extern std::thread gMainThread;
 	void start(bool background = false);
 	void stop();
-	void post(std::function<void()> f);
+	void post(std::function<void()> f, ToService to = TO_MAIN);
 	asio::io_context& getWorkerService();
+	asio::io_context& getDBService();
 }
 
 #endif
