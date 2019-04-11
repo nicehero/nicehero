@@ -49,7 +49,7 @@ namespace nicehero
 		virtual void sendMessage(Message& msg);
 		virtual void sendMessage(Serializable& msg);
 		TcpMessageParser* m_MessageParser = nullptr;
-		std::string& getUid();
+		tcpuid& getUid();
 	protected:
 		std::shared_ptr<TcpSessionImpl> m_impl;
 		std::string m_hash;
