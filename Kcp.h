@@ -13,7 +13,7 @@
 #include <functional>
 namespace nicehero
 {
-	const i32 IKCP_OVERHEAD = 68;
+	const i32 IKCP_OVERHEAD = 91;
 	const i32 INVALID_CONV = (~0);
 
 	class KcpSession;
@@ -40,6 +40,7 @@ namespace nicehero
 		:public NoCopy,public std::enable_shared_from_this<KcpSession>
 	{
 		friend class KcpSessionImpl;
+		friend class KcpSessionS;
 		friend class KcpServer;
 		friend class KcpServerImpl;
 	public:
@@ -47,10 +48,11 @@ namespace nicehero
 		virtual void init();
 		virtual void init(KcpServer& server);
 		virtual void init2(KcpServer& server);
+		virtual void init3(KcpServer& server);
 		virtual void close();
 		virtual void setMessageParser(KcpMessageParser* messageParser);
-		virtual void sendMessage(Message& msg);
-		virtual void sendMessage(Serializable& msg);
+		virtual void sendMessage(Message& msg,bool pureUdp = false);
+		virtual void sendMessage(Serializable& msg, bool pureUdp = false);
 		KcpMessageParser* m_MessageParser = nullptr;
 		kcpuid& getUid();
 	protected:
@@ -65,8 +67,7 @@ namespace nicehero
 		virtual void removeSelf();
 		virtual void removeSelfImpl();
 		void doRead();
-		void doSend(Message& msg);
-		void doSend();
+		void doSend(Message& msg, bool pureUdp);
 		std::atomic_bool m_IsSending;
 		std::list<Message> m_SendList;
 		virtual void handleMessage(std::shared_ptr<Message> msg);
@@ -82,6 +83,7 @@ namespace nicehero
 		virtual ~KcpSessionS();
 		void init(KcpServer& server);
 		void init2(KcpServer& server);
+		void init3(KcpServer& server);
 	protected:
 		KcpServer* m_KcpServer = nullptr;
 		void removeSelf();
@@ -122,7 +124,7 @@ namespace nicehero
 		virtual void removeSession(const kcpuid& uid,ui64 serialID);
 		virtual void accept();
 		std::unordered_map<kcpuid, std::shared_ptr<KcpSession> > m_sessions;
-
+		
 		ui32 getFreeUid();
 		ui32 m_maxSessions = 10000;
 		ui32 m_nextConv = 1;

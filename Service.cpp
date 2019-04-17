@@ -99,12 +99,12 @@ void nicehero::post(std::function<void()> f, ToService to)
 
 asio::io_context& nicehero::getWorkerService()
 {
-	static std::default_random_engine e;
+	static thread_local std::default_random_engine e;
 	return gWorkerServices[e() % WORK_THREAD_COUNT];
 }
 
 asio::io_context& nicehero::getDBService()
 {
-	static std::default_random_engine e;
+	static thread_local std::default_random_engine e;
 	return gDBServices[e() % DB_THREAD_COUNT];
 }

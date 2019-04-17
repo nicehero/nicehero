@@ -15,7 +15,7 @@ namespace nicehero
 			m_buff = nullptr;
 		}
 
-		Message(void* buff, size_t size_)
+		Message(const void* buff, size_t size_)
 		{
 			m_buff = nullptr;
 			if (size_ < 6)

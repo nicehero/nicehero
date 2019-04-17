@@ -161,6 +161,7 @@ void kcpTest()
 }
 int main(int argc, char* argv[])
 {
+	kcpTest();
 	task t;
 	t();
 	t();
