@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 				if (*xx >= 100)
 				{
 					auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
-					double qps = double(t) / 10000.0 * 1000.0;
+					double qps = 10000.0 / double(t)  * 1000.0;
 					nlog("qps:%.2lf", qps);
 				}
 			});
