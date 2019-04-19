@@ -155,7 +155,7 @@ void kcpTest()
 	iii = ikcp_nodelay(kcp2, 1, 0, 2, 1);
 	IUINT32 current = (IUINT32)nicehero::Clock::getInstance()->getTimeMS();
 	ikcp_update(kcp1, current);
-	IUINT32 next = ikcp_check(kcp1, current);
+	ikcp_check(kcp1, current);
 	ikcp_release(kcp1);
 	ikcp_release(kcp2);
 }
