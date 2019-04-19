@@ -2,6 +2,8 @@
 #include <time.h>
 #ifdef WIN32
 #include <Windows.h>
+#else
+#include<sys/time.h>
 #endif
 
 MODULE_IMPL(nicehero::Clock)
