@@ -21,7 +21,7 @@ namespace nicehero
 		virtual ~MongoCursor();
 		BsonPtr fetch();
 		int m_err = 0;
-		std::list<bson_t*> m_cursorImpl;
+		std::list<_bson_t*> m_cursorImpl;
 	};
 
 
