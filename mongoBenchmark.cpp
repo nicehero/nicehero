@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 	std::shared_ptr<int> xx = std::make_shared<int>(0);
 	for (int j = 1; j <= 100; ++ j)
 	{
-		nicehero::post([xx,j,pool]{
+		nicehero::post([xx,j,pool,t1]{
 			for (int i = 1;i <= 100;++ i)
 			{
 				pool->insert("easy",
@@ -46,7 +46,15 @@ int main(int argc, char* argv[])
 						, "}"
 						));
 			}
-			nicehero::post([xx]{++ (*xx);});
+			nicehero::post([xx]{
+				++ (*xx);
+				if (*xx >= 100)
+				{
+					auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
+					double qps = double(t) / 10000.0 * 1000.0;
+					nlog("qps:%.2lf", qps);
+				}
+			});
 		},nicehero::TO_DB);
 	}
 	nicehero::gMainThread.join();
