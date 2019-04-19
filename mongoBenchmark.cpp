@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 						));
 			}
 			nicehero::post([xx]{++ xx;});
-		},TO_DB);
+		},nicehero::TO_DB);
 	}
 	std::function<void()> pf = nullptr;
 	auto f = [&,t1,pf]{
