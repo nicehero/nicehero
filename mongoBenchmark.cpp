@@ -22,29 +22,48 @@ int main(int argc, char* argv[])
 	nicehero::MongoConnectionPool pool;
 	pool.init("mongodb://root:mztunv3wXYxbX@s-bp1711bd204bfe14.mongodb.rds.aliyuncs.com:3717,s-bp1f53f7e7932de4.mongodb.rds.aliyuncs.com:3717/?authSource=admin", "easy");
 	auto t1 = nicehero::Clock::getInstance()->getMilliSeconds();
-	for (int i = 1;i <= 10000;++ i)
+	int xx = 0;
+	for (int j = 1; j <= 100; ++ j)
 	{
-		pool.insert("easy",
-			NBSON_T(
-				"_id", BCON_INT64(i)
-				, "hello", BCON_UTF8("world")
-				, "ar"
-				, "["
-					, "{"
-						, "hello", BCON_INT64(666)
-					, "}"
-					, "world5"
-					, BCON_DATE_TIME(nicehero::Clock::getInstance()->getTimeMS())
-				, "]"
-				, "oo"
-				, "{"
-					,"xhello", BCON_INT64(666)
-				, "}"
-				));
+		nicehero::post([xx,j]{
+			for (int i = 1;i <= 100;++ i)
+			{
+				pool.insert("easy",
+					NBSON_T(
+						"_id", BCON_INT64(j * 1000 + i)
+						, "hello", BCON_UTF8("world")
+						, "ar"
+						, "["
+							, "{"
+								, "hello", BCON_INT64(666)
+							, "}"
+							, "world5"
+							, BCON_DATE_TIME(nicehero::Clock::getInstance()->getTimeMS())
+						, "]"
+						, "oo"
+						, "{"
+							,"xhello", BCON_INT64(666)
+						, "}"
+						));
+			}
+			nicehero::post([xx]{++ xx;});
+		},TO_DB);
 	}
-	auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
-	double qps = double(t) / 10000.0 * 1000.0;
-	nlog("qps:%.2lf",qps);
+	std::function<void()> pf = nullptr;
+	auto f = [xx,t1,pf]{
+		if (xx >= 100)
+		{
+			auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
+			double qps = double(t) / 10000.0 * 1000.0;
+			nlog("qps:%.2lf",qps);
+		}
+		else
+		{
+			nicehero::post(pf);
+		}
+	};
+	pf = f;
+	nicehero::post(f);
 	nicehero::gMainThread.join();
 	return 0;
 }
