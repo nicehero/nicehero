@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 	int xx = 0;
 	for (int j = 1; j <= 100; ++ j)
 	{
-		nicehero::post([xx,j]{
+		nicehero::post([pool,xx,j]{
 			for (int i = 1;i <= 100;++ i)
 			{
 				pool.insert("easy",
