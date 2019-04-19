@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 	nicehero::MongoConnectionPool pool;
 	pool.init("mongodb://root:mztunv3wXYxbX@s-bp1711bd204bfe14.mongodb.rds.aliyuncs.com:3717,s-bp1f53f7e7932de4.mongodb.rds.aliyuncs.com:3717/?authSource=admin", "easy");
 	auto t1 = nicehero::Clock::getInstance()->getMilliSeconds();
-	for (int i = 1;i <= 100000;++ i)
+	for (int i = 1;i <= 10000;++ i)
 	{
 		pool.insert("easy",
 			NBSON_T(
