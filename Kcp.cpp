@@ -142,7 +142,7 @@ public:
 		{
 			s->async_receive_from(asio::buffer(const_cast<char *>(buffer->c_str()), buffer->length())
 				, asio::ip::basic_endpoint<asio::ip::udp>(m_ip, m_port),
-				[=](asio::error_code ec, size_t bytesRecvd) 
+				[=](asio::error_code ec, std::size_t bytesRecvd) 
 			{
 				if (buffer->c_str()[0] == 1 && bytesRecvd == 1)
 				{
