@@ -26,7 +26,7 @@ int benchmark(int threadNum)
 	for (int j = 1; j <= threadNum; ++ j)
 	{
 		nicehero::post([xx,j,pool,t1, threadNum]{
-			for (int i = 1;i <= 100 * (100 / threadNum);++ i)
+			for (int i = 1;i <= 10 * (1000 / threadNum);++ i)
 			{
 				pool->insert("easy",
 					NBSON_T(
