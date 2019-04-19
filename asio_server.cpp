@@ -159,6 +159,7 @@ void kcpTest()
 	ikcp_release(kcp1);
 	ikcp_release(kcp2);
 }
+
 int main(int argc, char* argv[])
 {
 	kcpTest();
