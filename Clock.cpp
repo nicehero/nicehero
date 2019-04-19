@@ -80,7 +80,7 @@ namespace nicehero
 		timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 		m_second = ts.tv_sec;
-		m_millisecond = (TimeType)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+		m_millisecond = (i64)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 #endif
 		m_currentMS = m_current.tv_sec * 1000;
 		m_currentMS += m_current.tv_usec / 1000;
@@ -110,7 +110,7 @@ namespace nicehero
 		timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 		m_second = ts.tv_sec;
-		m_millisecond = (TimeType)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+		m_millisecond = (i64)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 #endif
 		m_currentMS = m_current.tv_sec * 1000;
 		m_currentMS += m_current.tv_usec / 1000;
