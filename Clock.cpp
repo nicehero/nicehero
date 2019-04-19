@@ -69,11 +69,11 @@ namespace nicehero
 #endif
 
 #ifdef WIN32
-		DWORD now = timeGetTime();
-		DWORD up = now - m_tailMillisecond;
+		ui32 now = timeGetTime();
+		ui32 up = now - m_tailMillisecond;
 		m_tailMillisecond = now;
 		m_millisecond += up;
-		m_second = static_cast<DWORD>(m_millisecond / 1000);
+		m_second = static_cast<ui32>(m_millisecond / 1000);
 #else
 		timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -83,7 +83,7 @@ namespace nicehero
 		m_currentMS = m_current.tv_sec * 1000;
 		m_currentMS += m_current.tv_usec / 1000;
 		m_retMillisecond = m_millisecond;// *m_scale;
-		m_retSecond = static_cast<DWORD>(m_retMillisecond / 1000);
+		m_retSecond = static_cast<ui32>(m_retMillisecond / 1000);
 		return m_retSecond;
 	}
 
@@ -99,11 +99,11 @@ namespace nicehero
 #endif
 
 #ifdef WIN32
-		DWORD now = timeGetTime();
-		DWORD up = now - m_tailMillisecond;
+		ui32 now = timeGetTime();
+		ui32 up = now - m_tailMillisecond;
 		m_tailMillisecond = now;
 		m_millisecond += up;
-		m_second = static_cast<DWORD>(m_millisecond / 1000);
+		m_second = static_cast<ui32>(m_millisecond / 1000);
 #else
 		timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -113,7 +113,7 @@ namespace nicehero
 		m_currentMS = m_current.tv_sec * 1000;
 		m_currentMS += m_current.tv_usec / 1000;
 		m_retMillisecond = m_millisecond;// *m_scale;
-		m_retSecond = static_cast<DWORD>(m_retMillisecond / 1000);
+		m_retSecond = static_cast<ui32>(m_retMillisecond / 1000);
 		return m_retMillisecond;
 	}
 
