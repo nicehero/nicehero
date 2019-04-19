@@ -141,8 +141,8 @@ public:
 			, std::shared_ptr<asio::ip::udp::socket> s)
 		{
 			s->async_receive_from(asio::buffer(const_cast<char *>(buffer->c_str()), buffer->length())
-				, asio::ip::basic_endpoint<asio::ip::udp>(m_ip, m_port),
-				[=](asio::error_code ec, std::size_t bytesRecvd) 
+				, *senderEndpoint,
+				[=](asio::error_code ec, std::size_t bytesRecvd)
 			{
 				if (buffer->c_str()[0] == 1 && bytesRecvd == 1)
 				{
@@ -607,7 +607,7 @@ public:
 		{
 			std::shared_ptr<std::string> buffer(new std::string());
 			char h = 4;
-			buffer->append(1,4);
+			buffer->append(1,h);
 			buffer->append((char*)msg_->m_buff, msg_->getSize());
 			m_impl->m_socket->async_send_to(asio::buffer(buffer->data(), buffer->size()),
 				m_impl->m_endpoint, [](asio::error_code, std::size_t) {
