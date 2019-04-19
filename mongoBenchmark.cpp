@@ -19,16 +19,16 @@
 int main(int argc, char* argv[])
 {
 	nicehero::start(true);
-	nicehero::MongoConnectionPool pool;
-	pool.init("mongodb://root:mztunv3wXYxbX@s-bp1711bd204bfe14.mongodb.rds.aliyuncs.com:3717,s-bp1f53f7e7932de4.mongodb.rds.aliyuncs.com:3717/?authSource=admin", "easy");
+	std::shared_ptr<nicehero::MongoConnectionPool> pool = std::make_shared<nicehero::MongoConnectionPool>();
+	pool->init("mongodb://root:mztunv3wXYxbX@s-bp1711bd204bfe14.mongodb.rds.aliyuncs.com:3717,s-bp1f53f7e7932de4.mongodb.rds.aliyuncs.com:3717/?authSource=admin", "easy");
 	auto t1 = nicehero::Clock::getInstance()->getMilliSeconds();
-	int xx = 0;
+	std::shared_ptr<int> xx = std::make_shared<int>(0);
 	for (int j = 1; j <= 100; ++ j)
 	{
-		nicehero::post([&]{
+		nicehero::post([xx,j,pool]{
 			for (int i = 1;i <= 100;++ i)
 			{
-				pool.insert("easy",
+				pool->insert("easy",
 					NBSON_T(
 						"_id", BCON_INT64(j * 1000 + i)
 						, "hello", BCON_UTF8("world")
@@ -46,12 +46,12 @@ int main(int argc, char* argv[])
 						, "}"
 						));
 			}
-			nicehero::post([&]{++ xx;});
+			nicehero::post([xx]{++ (*xx);});
 		},nicehero::TO_DB);
 	}
 	std::function<void()> pf = nullptr;
-	auto f = [&,t1,pf]{
-		if (xx >= 100)
+	auto f = [xx,t1,pf]{
+		if (*xx >= 100)
 		{
 			auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
 			double qps = double(t) / 10000.0 * 1000.0;
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 		}
 	};
 	pf = f;
-	nicehero::post(f);
+	nicehero::post(pf);
 	nicehero::gMainThread.join();
 	return 0;
 }
