@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 						, "}"
 						));
 			}
-			nicehero::post([xx]{
+			nicehero::post([xx,t1]{
 				++ (*xx);
 				if (*xx >= 100)
 				{
