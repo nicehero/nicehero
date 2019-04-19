@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 				));
 	}
 	auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
-	double qps = double(t) / 10000.0;
+	double qps = double(t) / 10000.0 * 1000.0;
 	nlog("qps:%.2lf",qps);
 	nicehero::gMainThread.join();
 	return 0;
