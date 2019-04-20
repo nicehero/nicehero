@@ -296,6 +296,7 @@ namespace nicehero
 			mongoc_client_pool_push(m_poolImpl, c);
 			return MongoCursorPtr(new MongoCursor(2));
 		}
+		mongoc_client_pool_push(m_poolImpl, c);
 		return MongoCursorPtr(new MongoCursor(0, cursor));
 	}
 
