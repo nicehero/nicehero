@@ -24,10 +24,10 @@ void benchmark_query(int threadNum, std::shared_ptr<nicehero::MongoConnectionPoo
 	{
 		nicehero::post([xx, j, pool, t1, threadNum] {
 			int yy = 1;
-			for (int i = 1; i <= 10 * (1000 / threadNum); ++i)
+			for (int i = 1; i <= 100 * (1000 / threadNum); ++i)
 			{
 				auto cursor = pool->find("easy", NBSON_T(
-					"_id", BCON_INT64(j * 1000 + i))
+					"_id", BCON_INT64(j * 10000 + i))
 					, nicehero::Bson(nullptr)
 				);
 				while (auto r = cursor->fetch())
@@ -35,14 +35,14 @@ void benchmark_query(int threadNum, std::shared_ptr<nicehero::MongoConnectionPoo
 					++ yy;
 				}
 			}
-			if (yy >= 10 * (1000 / threadNum))
+			if (yy >= 100 * (1000 / threadNum))
 			{
 				nicehero::post([pool, xx, t1, threadNum] {
 					++(*xx);
 					if (*xx >= threadNum)
 					{
 						auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
-						double qps = 10000.0 / double(t)  * 1000.0;
+						double qps = 100000.0 / double(t)  * 1000.0;
 						nlog("query qps:%.2lf", qps);
 					}
 				});
@@ -58,11 +58,11 @@ void benchmark_insert(int threadNum,std::shared_ptr<nicehero::MongoConnectionPoo
 	for (int j = 1; j <= threadNum; ++j)
 	{
 		nicehero::post([xx, j, pool, t1, threadNum] {
-			for (int i = 1; i <= 10 * (1000 / threadNum); ++i)
+			for (int i = 1; i <= 100 * (1000 / threadNum); ++i)
 			{
 				pool->insert("easy",
 					NBSON_T(
-						"_id", BCON_INT64(j * 1000 + i)
+						"_id", BCON_INT64(j * 10000 + i)
 						, "hello", BCON_UTF8("world")
 						, "ar"
 						, "["
@@ -83,7 +83,7 @@ void benchmark_insert(int threadNum,std::shared_ptr<nicehero::MongoConnectionPoo
 				if (*xx >= threadNum)
 				{
 					auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
-					double qps = 10000.0 / double(t)  * 1000.0;
+					double qps = 100000.0 / double(t)  * 1000.0;
 					nlog("insert qps:%.2lf", qps);
 					benchmark_query(threadNum,pool);
 				}
