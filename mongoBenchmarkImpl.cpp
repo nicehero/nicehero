@@ -34,6 +34,7 @@ void benchmark_query(int threadNum, std::shared_ptr<nicehero::MongoConnectionPoo
 				{
 					++ yy;
 				}
+				nlog("i:%d", i);
 			}
 			nlog("yy:%d", yy);
 			if (yy >= 10 * (1000 / threadNum))
