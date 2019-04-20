@@ -30,15 +30,14 @@ void benchmark_query(int threadNum, std::shared_ptr<nicehero::MongoConnectionPoo
 					"_id", BCON_INT64(j * 1000 + i))
 					, nicehero::Bson(nullptr)
 				);
-				nlog("aaaaaa");
 				while (auto r = cursor->fetch())
 				{
-					nlog("cccccc");
 					++ yy;
 				}
 			}
 			if (yy >= 10 * (1000 / threadNum))
 			{
+				nlog("aaaaaa");
 				nicehero::post([pool, xx, t1, threadNum] {
 					++(*xx);
 					if (*xx >= threadNum)
