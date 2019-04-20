@@ -16,17 +16,49 @@
 #include "Kcp.h"
 #include <kcp/ikcp.h>
 
-int benchmark(int threadNum)
+void benchmark_query(int threadNum, std::shared_ptr<nicehero::MongoConnectionPool> pool)
 {
-	nicehero::start(true);
-	std::shared_ptr<nicehero::MongoConnectionPool> pool = std::make_shared<nicehero::MongoConnectionPool>();
-	pool->init("mongodb://root:mztunv3wXYxbX@s-bp1711bd204bfe14.mongodb.rds.aliyuncs.com:3717,s-bp1f53f7e7932de4.mongodb.rds.aliyuncs.com:3717/?authSource=admin", "easy");
 	auto t1 = nicehero::Clock::getInstance()->getMilliSeconds();
 	std::shared_ptr<int> xx = std::make_shared<int>(0);
-	for (int j = 1; j <= threadNum; ++ j)
+	for (int j = 1; j <= threadNum; ++j)
 	{
-		nicehero::post([xx,j,pool,t1, threadNum]{
-			for (int i = 1;i <= 10 * (1000 / threadNum);++ i)
+		nicehero::post([xx, j, pool, t1, threadNum] {
+			int yy = 0;
+			for (int i = 1; i <= 10 * (1000 / threadNum); ++i)
+			{
+				auto cursor = pool->find("easy", NBSON_T(
+					"_id", BCON_INT64(j * 1000 + i))
+					, nicehero::Bson(nullptr)
+				);
+				while (auto r = cursor->fetch())
+				{
+					++ yy;
+				}
+			}
+			if (yy >= 10 * (1000 / threadNum))
+			{
+				nicehero::post([pool, xx, t1, threadNum] {
+					++(*xx);
+					if (*xx >= threadNum)
+					{
+						auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
+						double qps = 10000.0 / double(t)  * 1000.0;
+						nlog("query qps:%.2lf", qps);
+					}
+				});
+			}
+		}, nicehero::TO_DB);
+	}
+}
+
+void benchmark_insert(int threadNum,std::shared_ptr<nicehero::MongoConnectionPool> pool)
+{
+	auto t1 = nicehero::Clock::getInstance()->getMilliSeconds();
+	std::shared_ptr<int> xx = std::make_shared<int>(0);
+	for (int j = 1; j <= threadNum; ++j)
+	{
+		nicehero::post([xx, j, pool, t1, threadNum] {
+			for (int i = 1; i <= 10 * (1000 / threadNum); ++i)
 			{
 				pool->insert("easy",
 					NBSON_T(
@@ -34,29 +66,37 @@ int benchmark(int threadNum)
 						, "hello", BCON_UTF8("world")
 						, "ar"
 						, "["
-							, "{"
-								, "hello", BCON_INT64(666)
-							, "}"
-							, "world5"
-							, BCON_DATE_TIME(nicehero::Clock::getInstance()->getTimeMS())
+						, "{"
+						, "hello", BCON_INT64(666)
+						, "}"
+						, "world5"
+						, BCON_DATE_TIME(nicehero::Clock::getInstance()->getTimeMS())
 						, "]"
 						, "oo"
 						, "{"
-							,"xhello", BCON_INT64(666)
+						, "xhello", BCON_INT64(666)
 						, "}"
-						));
+					));
 			}
-			nicehero::post([xx,t1,threadNum]{
-				++ (*xx);
+			nicehero::post([pool,xx, t1, threadNum] {
+				++(*xx);
 				if (*xx >= threadNum)
 				{
 					auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
 					double qps = 10000.0 / double(t)  * 1000.0;
-					nlog("qps:%.2lf", qps);
+					nlog("insert qps:%.2lf", qps);
+					benchmark_query(threadNum,pool);
 				}
 			});
-		},nicehero::TO_DB);
+		}, nicehero::TO_DB);
 	}
+}
+int benchmark(int threadNum,const char* db)
+{
+	nicehero::start(true);
+	std::shared_ptr<nicehero::MongoConnectionPool> pool = std::make_shared<nicehero::MongoConnectionPool>();
+	pool->init(db, "easy");
+	benchmark_insert(threadNum,pool);
 	nicehero::gMainThread.join();
 	return 0;
 }
