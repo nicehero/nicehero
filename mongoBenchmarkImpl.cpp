@@ -23,7 +23,7 @@ void benchmark_query(int threadNum, std::shared_ptr<nicehero::MongoConnectionPoo
 	for (int j = 1; j <= threadNum; ++j)
 	{
 		nicehero::post([xx, j, pool, t1, threadNum] {
-			int yy = 0;
+			int yy = 1;
 			for (int i = 1; i <= 10 * (1000 / threadNum); ++i)
 			{
 				auto cursor = pool->find("easy", NBSON_T(
@@ -35,9 +35,9 @@ void benchmark_query(int threadNum, std::shared_ptr<nicehero::MongoConnectionPoo
 					++ yy;
 				}
 			}
+			nlog("yy:%d", yy);
 			if (yy >= 10 * (1000 / threadNum))
 			{
-				nlog("aaaaaa");
 				nicehero::post([pool, xx, t1, threadNum] {
 					++(*xx);
 					if (*xx >= threadNum)
