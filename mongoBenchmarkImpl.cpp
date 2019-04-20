@@ -64,6 +64,7 @@ void benchmark_query(int threadNum, std::shared_ptr<nicehero::MongoConnectionPoo
 					auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
 					double qps = 100000.0 / double(t)  * 1000.0;
 					nlog("query qps:%.2lf", qps);
+					benchmark_update(threadNum, pool);
 				}
 			});
 		}, nicehero::TO_DB);
