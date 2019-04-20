@@ -16,6 +16,33 @@
 #include "Kcp.h"
 #include <kcp/ikcp.h>
 
+void benchmark_update(int threadNum, std::shared_ptr<nicehero::MongoConnectionPool> pool)
+{
+	auto t1 = nicehero::Clock::getInstance()->getMilliSeconds();
+	std::shared_ptr<int> xx = std::make_shared<int>(0);
+	for (int j = 1; j <= threadNum; ++j)
+	{
+		nicehero::post([xx, j, pool, t1, threadNum] {
+			for (int i = 1; i <= 100 * (1000 / threadNum); ++i)
+			{
+				auto obj = NBSON("$set", "{", "ar.0.hello", BCON_INT64(101), "}");
+				pool->update("easy", NBSON_T(
+					"_id", BCON_INT64(j * 10000 + i))
+					, *obj);
+			}
+			nicehero::post([pool, xx, t1, threadNum] {
+				++(*xx);
+				if (*xx >= threadNum)
+				{
+					auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
+					double qps = 100000.0 / double(t)  * 1000.0;
+					nlog("update qps:%.2lf", qps);
+				}
+			});
+		}, nicehero::TO_DB);
+	}
+}
+
 void benchmark_query(int threadNum, std::shared_ptr<nicehero::MongoConnectionPool> pool)
 {
 	auto t1 = nicehero::Clock::getInstance()->getMilliSeconds();
@@ -23,30 +50,22 @@ void benchmark_query(int threadNum, std::shared_ptr<nicehero::MongoConnectionPoo
 	for (int j = 1; j <= threadNum; ++j)
 	{
 		nicehero::post([xx, j, pool, t1, threadNum] {
-			int yy = 1;
 			for (int i = 1; i <= 100 * (1000 / threadNum); ++i)
 			{
 				auto cursor = pool->find("easy", NBSON_T(
 					"_id", BCON_INT64(j * 10000 + i))
 					, nicehero::Bson(nullptr)
 				);
-				while (auto r = cursor->fetch())
+			}
+			nicehero::post([pool, xx, t1, threadNum] {
+				++(*xx);
+				if (*xx >= threadNum)
 				{
-					++ yy;
+					auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
+					double qps = 100000.0 / double(t)  * 1000.0;
+					nlog("query qps:%.2lf", qps);
 				}
-			}
-			if (yy >= 100 * (1000 / threadNum))
-			{
-				nicehero::post([pool, xx, t1, threadNum] {
-					++(*xx);
-					if (*xx >= threadNum)
-					{
-						auto t = nicehero::Clock::getInstance()->getMilliSeconds() - t1;
-						double qps = 100000.0 / double(t)  * 1000.0;
-						nlog("query qps:%.2lf", qps);
-					}
-				});
-			}
+			});
 		}, nicehero::TO_DB);
 	}
 }
