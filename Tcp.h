@@ -47,7 +47,7 @@ namespace nicehero
 		virtual void close();
 		virtual void setMessageParser(TcpMessageParser* messageParser);
 		virtual void sendMessage(Message& msg);
-		virtual void sendMessage(Serializable& msg);
+		virtual void sendMessage(const Serializable& msg);
 		TcpMessageParser* m_MessageParser = nullptr;
 		tcpuid& getUid();
 	protected:
@@ -90,7 +90,7 @@ namespace nicehero
 		virtual ~TcpSessionC();
 		
 		bool connect(const std::string& ip, ui16 port);
-		void init(bool isSync = false);
+		void init(bool isAsync = false);
 		void startRead();
 		std::atomic<bool> m_isInit;
 	protected:

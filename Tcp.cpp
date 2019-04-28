@@ -539,7 +539,7 @@ public:
 		doSend(msg);
 	}
 
-	void TcpSession::sendMessage(Serializable& msg)
+	void TcpSession::sendMessage(const Serializable& msg)
 	{
 		Message msg_;
 		msg.toMsg(msg_);
@@ -575,7 +575,7 @@ public:
 		return true;
 	}
 
-	void TcpSessionC::init(bool isSync)
+	void TcpSessionC::init(bool isAsync)
 	{
 		std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(getWorkerService());
 		auto f = [&, t](std::error_code ec) {
@@ -625,7 +625,7 @@ public:
 			m_isInit = true;
 			m_MessageParser = &getTcpMessagerParse(typeid(*this));
 		};
-		if (isSync)
+		if (isAsync)
 		{
 			m_impl->m_socket.async_wait(
 				asio::ip::tcp::socket::wait_read,f);

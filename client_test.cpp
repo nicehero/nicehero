@@ -5,6 +5,7 @@
 #include <asio/asio.hpp>
 #include "Message.h"
 #include "TestProtocol.h"
+#include "Kcp.h"
 class MyClient :public nicehero::TcpSessionC
 {
 public:
@@ -20,16 +21,21 @@ int main()
 {
 	nicehero::start(true);
 	std::vector<std::shared_ptr<MyClient> > cs;
-	for (int i = 0;i < 100; ++ i)
+	std::shared_ptr<nicehero::KcpSessionC> kcpc = std::make_shared<nicehero::KcpSessionC>();
+	kcpc->connect("127.0.0.1", 7001);
+	kcpc->init();
+	Proto::XData xxx;
+	xxx.n1 = 1;
+	xxx.s1 = "666";
+	kcpc->startRead();
+	kcpc->sendMessage(xxx);
+	for (int i = 0;i < 1; ++ i)
 	{
 		std::shared_ptr<MyClient> c = std::make_shared<MyClient>();
 		cs.push_back(c);
 		nicehero::post([=] {
 			c->connect("127.0.0.1", 7000);
 			c->init();
-			Proto::XData xxx;
-			xxx.n1 = 1;
-			xxx.s1 = "666";
 			c->sendMessage(xxx);
 			ui32 dat[2] = { 32,0 };
 			*(ui16*)(dat + 1) = 101;

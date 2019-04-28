@@ -97,7 +97,7 @@ namespace nicehero
 		virtual ~KcpSessionC();
 		
 		bool connect(const std::string& ip, ui16 port);
-		void init(bool isSync = false);
+		void init(bool isAsync = false);
 		void startRead();
 		std::atomic<bool> m_isInit;
 	protected:
