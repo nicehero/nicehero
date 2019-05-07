@@ -13,7 +13,7 @@
 #include <functional>
 namespace nicehero
 {
-	const i32 IKCP_OVERHEAD = 91;
+	const i32 IKCP_OVERHEAD = 89;
 	const i32 INVALID_CONV = (~0);
 
 	class KcpSession;
@@ -104,6 +104,9 @@ namespace nicehero
 		void removeSelf();
 	private:
 		int checkServerSign(ui8* data_);//return 0 ok 1 error 2 warning
+		std::shared_ptr<std::string> m_buffer;
+		void startRead2();
+		std::atomic<bool> m_isStartRead2;
 	};
 	class KcpServer
 		:public Server

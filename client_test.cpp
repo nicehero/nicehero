@@ -24,11 +24,32 @@ int main()
 	std::shared_ptr<nicehero::KcpSessionC> kcpc = std::make_shared<nicehero::KcpSessionC>();
 	kcpc->connect("127.0.0.1", 7001);
 	kcpc->init();
+	kcpc->startRead();
+	std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(nicehero::gService);
+	t->expires_from_now(std::chrono::seconds(1));
+	t->async_wait([kcpc](std::error_code ec) {
+		Proto::XData xxx;
+		xxx.n1 = 1;
+		xxx.s1 = "666";
+ 		kcpc->sendMessage(xxx);
+		std::shared_ptr<asio::steady_timer> t2 = std::make_shared<asio::steady_timer>(nicehero::gService);
+		t2->expires_from_now(std::chrono::seconds(10));
+		t2->async_wait([kcpc,t2](std::error_code ec) {
+			if (ec)
+			{
+				nlogerr(ec.message().c_str());
+			}
+			Proto::XData xxx;
+			xxx.n1 = 2;
+			xxx.s1 = "66666666";
+			kcpc->sendMessage(xxx);
+		});
+	});
+
 	Proto::XData xxx;
 	xxx.n1 = 1;
 	xxx.s1 = "666";
-	kcpc->startRead();
-	kcpc->sendMessage(xxx);
+
 	for (int i = 0;i < 1; ++ i)
 	{
 		std::shared_ptr<MyClient> c = std::make_shared<MyClient>();

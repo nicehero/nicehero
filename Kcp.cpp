@@ -179,17 +179,26 @@ public:
 				}
 				else if (buffer->c_str()[0] == 3 && bytesRecvd >= IKCP_OVERHEAD)
 				{
-					ui16 workerIndex = *(ui16*)(buffer->c_str() + 1);
+					ui16 workerIndex = *(ui16*)(buffer->c_str() + PUBLIC_KEY_SIZE + 1);
 					if ((ui32)workerIndex < WORK_THREAD_COUNT)
 					{
-						std::string uid = std::string((const char*)(buffer->c_str() + 3), PUBLIC_KEY_SIZE);
-						std::string data_ = std::string((const char*)(buffer->c_str() + 3 + PUBLIC_KEY_SIZE), bytesRecvd - 3 - PUBLIC_KEY_SIZE);
-						nicehero::gWorkerServices[workerIndex].post([&,uid, data_] {
+						std::string uid = std::string((const char*)(buffer->c_str() + 1), PUBLIC_KEY_SIZE);
+						std::string data_ = std::string((const char*)(buffer->c_str() + 1 + PUBLIC_KEY_SIZE), bytesRecvd - 1 - PUBLIC_KEY_SIZE);
+						nicehero::gWorkerServices[workerIndex].post([&,workerIndex, bytesRecvd,uid, data_] {
 							auto it = m_RunningSessions[workerIndex].find(uid);
 							if (it != m_RunningSessions[workerIndex].end() && it->second
 								&& it->second->m_impl->m_kcp)
 							{
-								ikcp_input(it->second->m_impl->m_kcp, data_.c_str(), (long)(bytesRecvd - 3 - PUBLIC_KEY_SIZE));
+								long inputSize = (long)(bytesRecvd - 1 - PUBLIC_KEY_SIZE);
+// 								nlog("ikcp_input:%d", inputSize);
+// 								nlog("start", inputSize);
+// 								for (long i = 0; i < inputSize; ++ i)
+// 								{
+// 									unsigned char c = data_.data()[i];
+// 									nlog("%02X", int(c));
+// 								}
+// 								nlog("end", inputSize);
+								ikcp_input(it->second->m_impl->m_kcp, data_.data(), inputSize);
 								it->second->m_impl->m_kcpUpdateTime = Clock::getInstance()->getMilliSeconds();
 							}
 						});
@@ -197,7 +206,7 @@ public:
 				}
 				else if (buffer->c_str()[0] == 4 && bytesRecvd > 1 + PUBLIC_KEY_SIZE)
 				{
-					std::string uid = std::string((const char*)(buffer->c_str() + 3), PUBLIC_KEY_SIZE);
+					std::string uid = std::string((const char*)(buffer->c_str() + 1), PUBLIC_KEY_SIZE);
 					ui32 len = *(ui32*)(buffer->c_str() + 1 + PUBLIC_KEY_SIZE);
 					if (len < bytesRecvd - 1 - PUBLIC_KEY_SIZE)
 					{
@@ -316,29 +325,26 @@ public:
 	void KcpSessionS::init(KcpServer& server)
 	{
 		m_uid = "";
-		m_conv = 1;
+		m_conv = m_impl->m_iocontextIndex;
 		init_kcp();
 		auto self(shared_from_this());
 
-		ui8 buff[PUBLIC_KEY_SIZE + 8 + HASH_SIZE + SIGN_SIZE] = {0};
+		ui8 buff[PUBLIC_KEY_SIZE + 8 + 4 + HASH_SIZE + SIGN_SIZE] = {0};
 		memcpy(buff, server.m_publicKey, PUBLIC_KEY_SIZE);
 		ui64 now = nNow;
 		*(ui64*)(buff + PUBLIC_KEY_SIZE) = now;
-		sha3(buff, PUBLIC_KEY_SIZE + 8, buff + PUBLIC_KEY_SIZE + 8, HASH_SIZE);
-		m_hash = std::string((const char*)(buff + PUBLIC_KEY_SIZE + 8),HASH_SIZE);
+		*(ui32*)(buff + PUBLIC_KEY_SIZE + 8) = m_conv;
+		sha3(buff, PUBLIC_KEY_SIZE + 8 + 4, buff + PUBLIC_KEY_SIZE + 8 + 4, HASH_SIZE);
+		m_hash = std::string((const char*)(buff + PUBLIC_KEY_SIZE + 8 + 4),HASH_SIZE);
 		if (uECC_sign(server.m_privateKey
-			, buff + PUBLIC_KEY_SIZE + 8, HASH_SIZE
-			, buff + PUBLIC_KEY_SIZE + 8 + HASH_SIZE
+			, buff + PUBLIC_KEY_SIZE + 8 + 4, HASH_SIZE
+			, buff + PUBLIC_KEY_SIZE + 8 + 4 + HASH_SIZE
 			, uECC_secp256k1()) != 1
 			) 
 		{
 			nlogerr("uECC_sign() failed\n");
 			return;
 		}
-// 		if (uECC_verify(buff, (const ui8*)(buff + PUBLIC_KEY_SIZE + 8), HASH_SIZE, buff + PUBLIC_KEY_SIZE + 8 + HASH_SIZE, uECC_secp256k1()) != 1)
-// 		{
-// 			nlogerr("error check hash2");
-// 		}
 		m_impl->m_socket->async_send_to(
 			asio::buffer(buff, sizeof(buff)),
 			m_impl->m_endpoint,
@@ -364,7 +370,7 @@ public:
 		t->async_wait([&,server,self,t](std::error_code ec) {
 			if (!ec)
 			{
-				nlog("session connecting timeout");
+// 				nlog("session connecting timeout");
 			}
 			else
 			{
@@ -393,6 +399,7 @@ public:
 						, [] (asio::error_code, std::size_t) {
 					});
 				}
+				nlog("m_RunningSessions insert");
 				server.m_impl->m_RunningSessions[m_impl->m_iocontextIndex][m_uid] = self;
 			});
 		});
@@ -415,6 +422,7 @@ public:
 			m_impl->getIoContext().post([&, self] {
 				if (m_KcpServer)
 				{
+					nlog("m_RunningSessions delete");
 					m_KcpServer->m_impl->m_RunningSessions[m_impl->m_iocontextIndex].erase(m_uid);
 				}
 			});
@@ -449,8 +457,14 @@ public:
 			return;
 		}
 		unsigned char data_[NETWORK_BUF_SIZE];
-		while (int len = m_impl->kcpRecv(m_impl->m_kcp, data_, NETWORK_BUF_SIZE) > 0)
+		while (1)
 		{
+			int len = m_impl->kcpRecv(m_impl->m_kcp, data_, NETWORK_BUF_SIZE);
+			if (len <= 0)
+			{
+				break;
+			}
+			nlog("kcpRecv:%d", len);
 			if (!parseMsg(data_, len))
 			{
 				removeSelf();
@@ -622,7 +636,8 @@ public:
 		m_impl->getIoContext().post([this,self, msg_,pureUdp] {
 			if (m_impl->m_kcp)
 			{
-				ikcp_send(m_impl->m_kcp, (const char*)msg_->m_buff, msg_->getSize());
+				ui32 sendSize = msg_->getSize();
+				ikcp_send(m_impl->m_kcp, (const char*)msg_->m_buff, sendSize);
 				m_impl->m_kcpUpdateTime = Clock::getInstance()->getMilliSeconds();
 			}
 		});
@@ -653,12 +668,12 @@ public:
 		memcpy(buf2 + 1, s->getUid().c_str(), PUBLIC_KEY_SIZE);
 		memcpy(buf2 + PUBLIC_KEY_SIZE + 1, buf, len);
 		buffer->assign(buf2, len + PUBLIC_KEY_SIZE + 1);
-		delete buf2;
 		s->m_impl->m_socket->async_send_to(
 			asio::buffer(buffer->c_str(), len + PUBLIC_KEY_SIZE + 1),
 			s->m_impl->m_endpoint,
 			[] (asio::error_code, std::size_t) {
 		});
+		delete buf2;
 		return 0;
 	}
 
@@ -671,7 +686,8 @@ public:
 		// param3 interval 2ms
 		// param4 resend
 		// param5 disable congestion control
-		ikcp_nodelay(m_impl->m_kcp, 1, 2, 1, 1);
+		ikcp_nodelay(m_impl->m_kcp, 1, 10, 2, 1);
+		ikcp_wndsize(m_impl->m_kcp, 256, 256);
 	}
 
 	void KcpSession::init3(KcpServer& server)
@@ -682,6 +698,7 @@ public:
 	KcpSessionC::KcpSessionC()
 	{
 		m_isInit = false;
+		m_isStartRead2 = false;
 		m_impl = std::make_shared<KcpSessionImpl>(*this);
 		m_impl->m_socket = std::make_shared<asio::ip::udp::socket>(m_impl->getIoContext(), asio::ip::udp::endpoint());
 	}
@@ -722,7 +739,7 @@ public:
 				nlogerr("KcpSessionC::init err %s", ec.message().c_str());
 				return;
 			}
-			ui8 data_[PUBLIC_KEY_SIZE + 8 + HASH_SIZE + SIGN_SIZE] = "";
+			ui8 data_[PUBLIC_KEY_SIZE + 8 + 4 + HASH_SIZE + SIGN_SIZE] = "";
 			std::size_t len = 0;
 			try
 			{
@@ -744,11 +761,12 @@ public:
 				nlogerr("server sign err");
 				return;
 			}
+			m_conv = *(ui32*)(data_ + PUBLIC_KEY_SIZE + 8);
 			ui8 sendSign[PUBLIC_KEY_SIZE + SIGN_SIZE + 1] = { 0 };
 			sendSign[0] = 2;
 			memcpy(sendSign + 1, m_publicKey, PUBLIC_KEY_SIZE);
 			if (uECC_sign(m_privateKey
-				, (const ui8*)data_ + PUBLIC_KEY_SIZE + 8, HASH_SIZE
+				, (const ui8*)data_ + PUBLIC_KEY_SIZE + 8 + 4, HASH_SIZE
 				, sendSign + PUBLIC_KEY_SIZE + 1
 				, uECC_secp256k1()) != 1)
 			{
@@ -765,6 +783,7 @@ public:
 				nlogerr("KcpSessionC::init err %s", ec.message().c_str());
 				return;
 			}
+			m_buffer = std::shared_ptr<std::string>(new std::string(NETWORK_BUF_SIZE, 0));
 			init_kcp();
 			m_isInit = true;
 			m_MessageParser = &getKcpMessagerParse(typeid(*this));
@@ -779,14 +798,14 @@ public:
 			}
 			if (!isAsync)
 			{
-				isOver = 1;
+				isOver.store(1, std::memory_order_release);
 			}
 		});
 		if (!isAsync)
 		{
 			while (1)
 			{
-				if (isOver != 0)
+				if (isOver.load(std::memory_order_acquire) == 1)
 				{
 					break;
 				}
@@ -797,6 +816,11 @@ public:
 
 	void KcpSessionC::startRead()
 	{
+		if (!m_isStartRead2)
+		{
+			m_isStartRead2 = true;
+			startRead2();
+		}
 		std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(m_impl->getIoContext());
 		t->expires_from_now(std::chrono::milliseconds(1));
 		t->async_wait([this, t](std::error_code ec) {
@@ -807,6 +831,40 @@ public:
 			}
 			doRead();
 			startRead();
+		});
+	}
+
+	void KcpSessionC::startRead2()
+	{
+		m_impl->m_socket->async_receive(asio::buffer(const_cast<char *>(m_buffer->c_str()), m_buffer->length())
+			, [=](asio::error_code ec, std::size_t bytesRecvd)
+		{
+			if (m_buffer->c_str()[0] == 3 && bytesRecvd >= IKCP_OVERHEAD)
+			{
+				ui16 workerIndex = *(ui16*)(m_buffer->c_str() + PUBLIC_KEY_SIZE + 1);
+				if ((ui32)workerIndex < WORK_THREAD_COUNT)
+				{
+					std::string uid = std::string((const char*)(m_buffer->c_str() + 1), PUBLIC_KEY_SIZE);
+					std::string data_ = std::string((const char*)(m_buffer->c_str() + 1 + PUBLIC_KEY_SIZE), bytesRecvd - 1 - PUBLIC_KEY_SIZE);
+// 					nlog("recv ikcp_inputC:%d", bytesRecvd - 1 - PUBLIC_KEY_SIZE);
+					ikcp_input(m_impl->m_kcp, data_.c_str(), (long)(bytesRecvd - 1 - PUBLIC_KEY_SIZE));
+					m_impl->m_kcpUpdateTime = Clock::getInstance()->getMilliSeconds();
+				}
+			}
+			else if (m_buffer->c_str()[0] == 4 && bytesRecvd > 1 + PUBLIC_KEY_SIZE)
+			{
+				std::string uid = std::string((const char*)(m_buffer->c_str() + 1), PUBLIC_KEY_SIZE);
+				ui32 len = *(ui32*)(m_buffer->c_str() + 1 + PUBLIC_KEY_SIZE);
+				if (len < bytesRecvd - 1 - PUBLIC_KEY_SIZE)
+				{
+					return;
+				}
+				auto recvMsg = std::make_shared<Message>(m_buffer->c_str() + 1, len);
+				nicehero::post([&, this, recvMsg, uid] {
+					handleMessage(recvMsg);
+				});
+			}
+			startRead2();
 		});
 	}
 
@@ -839,11 +897,11 @@ public:
 			ret = 2;
 		}
 		ui64 checkHash[HASH_SIZE / 8] = { 0 };
-		sha3(data_, PUBLIC_KEY_SIZE + 8, checkHash, HASH_SIZE);
+		sha3(data_, PUBLIC_KEY_SIZE + 8 + 4, checkHash, HASH_SIZE);
 		allSame = true;
 		for (size_t i = 0; i < HASH_SIZE / 8; ++i)
 		{
-			if (checkHash[i] != ((ui64*)(data_ + PUBLIC_KEY_SIZE + 8))[i])
+			if (checkHash[i] != ((ui64*)(data_ + PUBLIC_KEY_SIZE + 8 + 4))[i])
 			{
 				allSame = false;
 			}
@@ -853,7 +911,7 @@ public:
 			nlogerr("error check hash");
 			return 1;
 		}
-		if (uECC_verify(data_, (const ui8*)(data_ + PUBLIC_KEY_SIZE + 8), HASH_SIZE, data_ + PUBLIC_KEY_SIZE + 8 + HASH_SIZE, uECC_secp256k1()) != 1)
+		if (uECC_verify(data_, (const ui8*)(data_ + PUBLIC_KEY_SIZE + 8 + 4), HASH_SIZE, data_ + PUBLIC_KEY_SIZE + 8 + 4 + HASH_SIZE, uECC_secp256k1()) != 1)
 		{
 			nlogerr("error check hash2");
 			return 1;
