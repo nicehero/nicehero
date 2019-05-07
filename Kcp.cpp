@@ -686,7 +686,7 @@ public:
 		// param3 interval 2ms
 		// param4 resend
 		// param5 disable congestion control
-		ikcp_nodelay(m_impl->m_kcp, 1, 10, 2, 1);
+		ikcp_nodelay(m_impl->m_kcp, 1, 2, 2, 1);
 		ikcp_wndsize(m_impl->m_kcp, 256, 256);
 	}
 
