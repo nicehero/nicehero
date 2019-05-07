@@ -160,6 +160,24 @@ void kcpTest()
 	ikcp_release(kcp2);
 }
 
+class MyKcpSession : public nicehero::KcpSessionS
+{
+public:
+};
+class MyKcpServer :public nicehero::KcpServer
+{
+public:
+	MyKcpServer(const std::string& ip, ui16 port)
+		:KcpServer(ip, port)
+	{}
+	virtual nicehero::KcpSessionS* createSession();
+};
+
+nicehero::KcpSessionS* MyKcpServer::createSession()
+{
+	return new MyKcpSession();
+}
+
 int main(int argc, char* argv[])
 {
 	kcpTest();
@@ -209,7 +227,7 @@ int main(int argc, char* argv[])
 #endif
 	auto tcpServer = MyServer("0.0.0.0", 7000);
 	tcpServer.accept();
-	auto kcpServer = nicehero::KcpServer("0.0.0.0", 7001);
+	auto kcpServer = MyKcpServer("0.0.0.0", 7001);
  	kcpServer.accept();
 	auto privateKey1 = tcpServer.GetPrivateKeyString();
 	tcpServer.SetPrivateKeyString(privateKey1);
@@ -301,3 +319,11 @@ SESSION_COMMAND(MyClient, 102)
 	return true;
 }
 
+KCP_SESSION_COMMAND(MyKcpSession, 100)
+{
+	XData d;
+	d.n1 = 2;
+	d.s1 = "xxxx";
+	session.sendMessage(d);
+	return true;
+}

@@ -28,10 +28,6 @@ int main()
 	std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(nicehero::gService);
 	t->expires_from_now(std::chrono::seconds(1));
 	t->async_wait([kcpc](std::error_code ec) {
-		Proto::XData xxx;
-		xxx.n1 = 1;
-		xxx.s1 = "666";
- 		kcpc->sendMessage(xxx);
 		std::shared_ptr<asio::steady_timer> t2 = std::make_shared<asio::steady_timer>(nicehero::gService);
 		t2->expires_from_now(std::chrono::seconds(10));
 		t2->async_wait([kcpc,t2](std::error_code ec) {
@@ -49,6 +45,7 @@ int main()
 	Proto::XData xxx;
 	xxx.n1 = 1;
 	xxx.s1 = "666";
+	kcpc->sendMessage(xxx);
 
 	for (int i = 0;i < 1; ++ i)
 	{
