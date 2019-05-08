@@ -1,5 +1,5 @@
-#ifndef ___NICE__MONGO_HPP__
-#define ___NICE__MONGO_HPP__
+#ifndef ___EASY__MONGO_HPP__
+#define ___EASY__MONGO_HPP__
 
 #include <mongoc/mongoc.h>
 #include <bson/bson.h>
@@ -7,13 +7,15 @@
 #include <string>
 #include <memory>
 #include "Bson.hpp"
-#include "Log.h"
 #include <list>
+#include "NoCopy.h"
 
 namespace nicehero
 {
 	class MongoCursor
+		:public NoCopy
 	{
+		friend class MongoClient;
 		friend class MongoConnectionPool;
 	protected:
 		MongoCursor(int err, mongoc_cursor_t* cursor = nullptr);
@@ -26,8 +28,49 @@ namespace nicehero
 
 
 	using MongoCursorPtr = std::shared_ptr<MongoCursor>;
+	class MongoClient;
+	class MongoClient
+		:public NoCopy
+	{
+		friend class MongoConnectionPool;
+	protected:
+		MongoClient(MongoConnectionPool& pool, mongoc_client_t* c);
+	public:
+		~MongoClient();
+		bson_error_t insert(const std::string& collection
+			, const Bson& doc
+			, mongoc_insert_flags_t flags = MONGOC_INSERT_NONE
+			, bool specialWriteConcern = false
+			, int writeConcern = 1
+			);
+
+		bson_error_t update(const std::string& collection
+			, const Bson& query
+			, const Bson& doc
+			, mongoc_update_flags_t flags = MONGOC_UPDATE_NONE
+			, bool specialWriteConcern = false
+			, int writeConcern = 1
+			);
+
+		MongoCursorPtr find(const std::string& collection
+			, const Bson& query
+			, const Bson& opt
+			, mongoc_read_mode_t readMode = MONGOC_READ_PRIMARY
+			);
+
+		std::string m_dbname;
+	protected:
+
+	private:
+		MongoConnectionPool& m_pool;
+		mongoc_client_t* m_client;
+
+	};
+
+	using MongoClientPtr = std::unique_ptr<MongoClient>;
 
 	class MongoConnectionPool
+		:public NoCopy
 	{
 	public:
 		virtual ~MongoConnectionPool();
@@ -39,7 +82,6 @@ namespace nicehero
 
 		mongoc_uri_t* m_url = nullptr;
 		mongoc_client_pool_t * m_poolImpl = nullptr;
-		std::string m_dbname;
 
 		bson_error_t insert(const std::string& collection
 			, const Bson& doc
@@ -61,6 +103,12 @@ namespace nicehero
 			, const Bson& opt
 			, mongoc_read_mode_t readMode = MONGOC_READ_PRIMARY
 			);
+
+		MongoClientPtr popClient();
+
+		const std::string& getDBName()const;
+	private:
+		std::string m_dbname;//NotSet because thread safe
 	};
 
 	inline MongoConnectionPool::~MongoConnectionPool()
@@ -191,16 +239,60 @@ namespace nicehero
 	inline bson_error_t MongoConnectionPool::insert(const std::string& collection, const Bson& doc, mongoc_insert_flags_t flags /*= MONGOC_INSERT_NONE */, bool specialWriteConcern /*= false */, int writeConcern /*= 1 */)
 	{
 		bson_error_t error;
-		bson_set_error(&error, 0, 2, "db error");
-		auto c = mongoc_client_pool_pop(m_poolImpl);
+		bson_set_error(&error, 0, 3, "pool empty");
+		auto c = popClient();
 		if (!c)
 		{
 			return error;
 		}
-		auto collection_ = mongoc_client_get_collection(c, m_dbname.c_str(), collection.c_str());
+		return c->insert(collection, doc, flags, specialWriteConcern, writeConcern);
+	}
+
+
+	inline bson_error_t MongoConnectionPool::update(const std::string& collection, const Bson& query, const Bson& doc, mongoc_update_flags_t flags /*= MONGOC_UPDATE_NONE */, bool specialWriteConcern /*= false */, int writeConcern /*= 1 */)
+	{
+		bson_error_t error;
+		bson_set_error(&error, 0, 3, "pool empty");
+		auto c = popClient();
+		if (!c)
+		{
+			return error;
+		}
+		return c->update(collection,query, doc, flags, specialWriteConcern, writeConcern);
+	}
+	inline const std::string& nicehero::MongoConnectionPool::getDBName()const
+	{
+		return m_dbname;
+	}
+
+	inline MongoCursorPtr MongoConnectionPool::find(const std::string& collection, const Bson& query, const Bson& opt, mongoc_read_mode_t readMode /*= MONGOC_READ_PRIMARY */)
+	{
+		auto c = popClient();
+		if (!c)
+		{
+			return MongoCursorPtr(new MongoCursor(2));
+		}
+		return c->find(collection, query,  opt, readMode);
+	}
+
+	inline nicehero::MongoClient::MongoClient(MongoConnectionPool& pool,mongoc_client_t* c)
+		:m_pool(pool),m_client(c)
+	{
+		m_dbname = m_pool.getDBName();
+	}
+
+	inline nicehero::MongoClient::~MongoClient()
+	{
+		mongoc_client_pool_push(m_pool.m_poolImpl, m_client);
+	}
+
+	inline bson_error_t nicehero::MongoClient::insert(const std::string& collection, const Bson& doc, mongoc_insert_flags_t flags /*= MONGOC_INSERT_NONE */, bool specialWriteConcern /*= false */, int writeConcern /*= 1 */)
+	{
+		bson_error_t error;
+		bson_set_error(&error, 0, 2, "db error");
+		auto collection_ = mongoc_client_get_collection(m_client, m_dbname.c_str(), collection.c_str());
 		if (!collection_)
 		{
-			mongoc_client_pool_push(m_poolImpl, c);
 			return error;
 		}
 		mongoc_write_concern_t* write_concern = nullptr;
@@ -209,7 +301,6 @@ namespace nicehero
 			write_concern = mongoc_write_concern_new();
 			if (!write_concern)
 			{
-				nlogerr("mongoc_write_concern_new err");
 				return error;
 			}
 			mongoc_write_concern_set_w(write_concern, writeConcern);
@@ -220,31 +311,22 @@ namespace nicehero
 			{
 				mongoc_write_concern_destroy(write_concern);
 			}
-			mongoc_client_pool_push(m_poolImpl, c);
 			return error;
 		}
 		if (write_concern)
 		{
 			mongoc_write_concern_destroy(write_concern);
 		}
-		mongoc_client_pool_push(m_poolImpl, c);
 		return error;
 	}
-
-
-	inline bson_error_t MongoConnectionPool::update(const std::string& collection, const Bson& query, const Bson& obj, mongoc_update_flags_t flags /*= MONGOC_UPDATE_NONE */, bool specialWriteConcern /*= false */, int writeConcern /*= 1 */)
+	
+	inline bson_error_t nicehero::MongoClient::update(const std::string& collection, const Bson& query, const Bson& doc, mongoc_update_flags_t flags /*= MONGOC_UPDATE_NONE */, bool specialWriteConcern /*= false */, int writeConcern /*= 1 */)
 	{
 		bson_error_t error;
 		bson_set_error(&error, 0, 2, "db error");
-		auto c = mongoc_client_pool_pop(m_poolImpl);
-		if (!c)
-		{
-			return error;
-		}
-		auto collection_ = mongoc_client_get_collection(c, m_dbname.c_str(), collection.c_str());
+		auto collection_ = mongoc_client_get_collection(m_client, m_dbname.c_str(), collection.c_str());
 		if (!collection_)
 		{
-			mongoc_client_pool_push(m_poolImpl, c);
 			return error;
 		}
 		mongoc_write_concern_t* write_concern = nullptr;
@@ -258,26 +340,24 @@ namespace nicehero
 			}
 			mongoc_write_concern_set_w(write_concern, writeConcern);
 		}
-		if (!mongoc_collection_update(collection_,flags,query.m_bson,obj.m_bson, write_concern, &error))
+		if (!mongoc_collection_update(collection_, flags, query.m_bson, doc.m_bson, write_concern, &error))
 		{
 			if (write_concern)
 			{
 				mongoc_write_concern_destroy(write_concern);
 			}
-			mongoc_client_pool_push(m_poolImpl, c);
 			return error;
 		}
 		if (write_concern)
 		{
 			mongoc_write_concern_destroy(write_concern);
 		}
-		mongoc_client_pool_push(m_poolImpl, c);
 		return error;
 	}
 
-	inline MongoCursorPtr MongoConnectionPool::find(const std::string& collection, const Bson& query, const Bson& opt, mongoc_read_mode_t readMode /*= MONGOC_READ_PRIMARY */)
+	inline MongoCursorPtr nicehero::MongoClient::find(const std::string& collection, const Bson& query, const Bson& opt, mongoc_read_mode_t readMode /*= MONGOC_READ_PRIMARY */)
 	{
-		auto c = mongoc_client_pool_pop(m_poolImpl);
+		auto c = m_client;
 		if (!c)
 		{
 			return MongoCursorPtr(new MongoCursor(2));
@@ -285,7 +365,6 @@ namespace nicehero
 		auto collection_ = mongoc_client_get_collection(c, m_dbname.c_str(), collection.c_str());
 		if (!collection_)
 		{
-			mongoc_client_pool_push(m_poolImpl, c);
 			return MongoCursorPtr(new MongoCursor(2));
 		}
 		auto read_prefs = mongoc_read_prefs_new(readMode);
@@ -293,14 +372,23 @@ namespace nicehero
 		mongoc_read_prefs_destroy(read_prefs);
 		if (!cursor)
 		{
-			mongoc_client_pool_push(m_poolImpl, c);
 			return MongoCursorPtr(new MongoCursor(2));
 		}
 		auto ret = MongoCursorPtr(new MongoCursor(0, cursor));
-		mongoc_client_pool_push(m_poolImpl, c);
 		return ret;
+	}
+
+	inline MongoClientPtr nicehero::MongoConnectionPool::popClient()
+	{
+		auto c = mongoc_client_pool_pop(m_poolImpl);
+		if (!c)
+		{
+			return MongoClientPtr();
+		}
+		return MongoClientPtr(new MongoClient(*this,c));
 	}
 
 }
 
 #endif
+

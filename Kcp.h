@@ -71,6 +71,7 @@ namespace nicehero
 		std::atomic_bool m_IsSending;
 		std::list<Message> m_SendList;
 		virtual void handleMessage(std::shared_ptr<Message> msg);
+		bool m_Ready = true;
 	};
 	class KcpSessionS
 		:public KcpSession
@@ -140,6 +141,7 @@ namespace nicehero
 	}
 
 }
+
 
 #define KCP_SESSION_COMMAND(CLASS,COMMAND) \
 static bool _##CLASS##_##COMMAND##FUNC(nicehero::KcpSession& session, nicehero::Message& msg);\

@@ -401,6 +401,11 @@ public:
 				}
 				nlog("m_RunningSessions insert");
 				server.m_impl->m_RunningSessions[m_impl->m_iocontextIndex][m_uid] = self;
+				nicehero::post([self] {
+					nicehero::Message msg;
+					msg.ID(KCP_READY_NTF);
+					self->sendMessage(msg);
+				});
 			});
 		});
 	}
@@ -464,7 +469,7 @@ public:
 			{
 				break;
 			}
-			nlog("kcpRecv:%d", len);
+// 			nlog("kcpRecv:%d", len);
 			if (!parseMsg(data_, len))
 			{
 				removeSelf();
@@ -591,6 +596,11 @@ public:
 
 	void KcpSession::handleMessage(std::shared_ptr<Message> msg)
 	{
+		if (msg->getMsgID() == KCP_READY_NTF)
+		{
+			m_Ready = true;
+			return;
+		}
 		if (m_MessageParser)
 		{
 			if (m_MessageParser->m_commands[msg->getMsgID()] == nullptr)
@@ -701,6 +711,7 @@ public:
 		m_isStartRead2 = false;
 		m_impl = std::make_shared<KcpSessionImpl>(*this);
 		m_impl->m_socket = std::make_shared<asio::ip::udp::socket>(m_impl->getIoContext(), asio::ip::udp::endpoint());
+		m_Ready = false;
 	}
 
 	KcpSessionC::~KcpSessionC()

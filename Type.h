@@ -13,5 +13,12 @@ using ui32 = uint32_t;
 using i64 = int64_t;
 using ui64 = uint64_t;
 
+const ui16 SYSPING_REQ = 0xFFFA;// 65530
+const ui16 SYSPING_ACK = 0xFFFB;// 65531
+const ui16 PROTOCOL_VERSION_NTF = 0xFFFC;// 65532
+const ui16 PROTOCOL_VERSION_AVAILABLE_NTF = 0xFFFD;// 65533
+const ui16 KCP_READY_NTF = 0xFFF0;// 65529
+
+
 #endif
 

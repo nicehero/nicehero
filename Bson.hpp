@@ -1,5 +1,5 @@
-#ifndef ___NICE__BSON_HPP__
-#define ___NICE__BSON_HPP__
+#ifndef ___EASY__BSON_HPP__
+#define ___EASY__BSON_HPP__
 #include <bson/bson.h>
 #include "Type.h"
 #include <string>
@@ -117,4 +117,4 @@ namespace nicehero
 #define NBSON(...) nicehero::BsonPtr(new ::nicehero::Bson(bcon_new (NULL, __VA_ARGS__, (void *) NULL))) //BCON_NEW
 #define NBSON_T(...) ::nicehero::Bson(bcon_new (NULL, __VA_ARGS__, (void *) NULL)) //BCON_NEW
 #endif
-#endif // !___NICE__BSON_HPP__
+#endif // !___EASY__BSON_HPP__

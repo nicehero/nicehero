@@ -120,3 +120,4 @@ int benchmark(int threadNum, const char* db, const char* tablename)
 	nicehero::gMainThread.join();
 	return 0;
 }
+

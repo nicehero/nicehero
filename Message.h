@@ -115,6 +115,10 @@ namespace nicehero
 	};
 	inline Message & Message::ID(ui16 msgID)
 	{
+		if (!m_buff)
+		{
+			buildBuff(6);
+		}
 		*((ui16*)(m_buff + 4)) = msgID;
 		return *this;
 	}
