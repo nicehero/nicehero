@@ -270,10 +270,9 @@ int main(int argc, char* argv[])
 					,"xhello", BCON_INT64(666)
 				, "}"
 				));
-		auto obj = NBSON("$set", "{", "ar.0.hello", BCON_INT64(101), "}");
 		pool.update("easy",
 			NBSON_T("_id", BCON_INT64(103)),
-			*obj);
+			NBSON_T("$set", "{", "ar.0.hello", BCON_INT64(101), "}"));
 		auto cursor = pool.find("easy", NBSON_T("_id", BCON_INT64(103)), nicehero::Bson(nullptr));
 		while (auto r = cursor->fetch())
 		{
@@ -286,6 +285,7 @@ int main(int argc, char* argv[])
 				printf("ar.0.hello: %d\n", int(r->asInt64("ar.0.hello")));
 			}
 		}
+		auto ccc = pool.popClient();
 	}
 	nicehero::gMainThread.join();
 	return 0;
