@@ -399,7 +399,7 @@ public:
 						, [] (asio::error_code, std::size_t) {
 					});
 				}
-				nlog("m_RunningSessions insert");
+// 				nlog("m_RunningSessions insert");
 				server.m_impl->m_RunningSessions[m_impl->m_iocontextIndex][m_uid] = self;
 				nicehero::post([self] {
 					nicehero::Message msg;
@@ -429,7 +429,7 @@ public:
 			m_impl->getIoContext().post([&, self] {
 				if (m_KcpServer)
 				{
-					nlog("m_RunningSessions delete");
+// 					nlog("m_RunningSessions delete");
 					m_KcpServer->m_impl->m_RunningSessions[m_impl->m_iocontextIndex].erase(m_uid);
 				}
 			});
