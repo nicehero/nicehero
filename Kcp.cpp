@@ -108,6 +108,7 @@ public:
 
 				for (auto it:m_RunningSessions[workerIndex])
 				{
+					it.second->doPing();
 					it.second->doRead();
 				}
 				
@@ -409,8 +410,10 @@ public:
 		});
 	}
 
+
 	void KcpSessionS::removeSelf()
 	{
+		m_waitRemove = true;
 		auto self(shared_from_this());
 		nicehero::post([&,self] {
 			removeSelfImpl();
@@ -430,6 +433,14 @@ public:
 					m_KcpServer->m_impl->m_RunningSessions[m_impl->m_iocontextIndex].erase(m_uid);
 				}
 			});
+		}
+	}
+
+	void KcpSessionS::doRead()
+	{
+		if (!m_waitRemove)
+		{
+			KcpSession::doRead();
 		}
 	}
 
@@ -460,12 +471,22 @@ public:
 		{
 			return;
 		}
+		ui64 now = Clock::getInstance()->getTime();
+		if (m_lastPongTime == 0)
+		{
+			m_lastPongTime = now;
+		}
 		unsigned char data_[NETWORK_BUF_SIZE];
 		while (1)
 		{
 			int len = m_impl->kcpRecv(m_impl->m_kcp, data_, NETWORK_BUF_SIZE);
 			if (len <= 0)
 			{
+				if (now > m_lastPongTime + 5) // timeout 5 second
+				{
+					removeSelf();
+					return;
+				}
 				break;
 			}
 // 			nlog("kcpRecv:%d", len);
@@ -473,6 +494,11 @@ public:
 			{
 				removeSelf();
 				return;
+			}
+			else
+			{
+				m_lastPingTime = now;
+				m_lastPongTime = now;
 			}
 		}
 	}
@@ -600,6 +626,17 @@ public:
 			m_Ready = true;
 			return;
 		}
+		if (msg->getMsgID() == SYSPING_ACK)
+		{
+			return;
+		}
+		if (msg->getMsgID() == SYSPING_REQ)
+		{
+			Message msgSend;
+			msgSend.ID(SYSPING_ACK);
+			sendMessage(msgSend);
+			return;
+		}
 		if (m_MessageParser)
 		{
 			if (m_MessageParser->m_commands[msg->getMsgID()] == nullptr)
@@ -613,7 +650,6 @@ public:
 
 	void KcpSession::close()
 	{
-		m_uid = "";
 	}
 
 	void KcpSession::setMessageParser(KcpMessageParser* messageParser)
@@ -702,6 +738,26 @@ public:
 	void KcpSession::init3(KcpServer& server)
 	{
 
+	}
+
+	void KcpSession::doPing()
+	{
+		ui64 now = Clock::getInstance()->getTime();
+		if (m_lastPingTime == 0)
+		{
+			m_lastPingTime = now;
+			return;
+		}
+		if (now > m_lastPingTime)
+		{
+			m_lastPingTime = now;
+			auto self(shared_from_this());
+			nicehero::post([self] {
+				nicehero::Message msg;
+				msg.ID(SYSPING_REQ);
+				self->sendMessage(msg);
+			});
+		}
 	}
 
 	KcpSessionC::KcpSessionC()
@@ -891,10 +947,16 @@ public:
 		});
 	}
 
+	void KcpSessionC::doRead()
+	{
+		KcpSession::doRead();
+	}
+
 	void KcpSessionC::removeSelf()
 	{
 		close();
 	}
+
 
 	int KcpSessionC::checkServerSign(ui8* data_)
 	{

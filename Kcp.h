@@ -66,12 +66,16 @@ namespace nicehero
 		bool parseMsg(unsigned char* data, ui32 len);
 		virtual void removeSelf();
 		virtual void removeSelfImpl();
-		void doRead();
+		void doPing();
+		virtual void doRead();
 		void doSend(Message& msg, bool pureUdp);
 		std::atomic_bool m_IsSending;
 		std::list<Message> m_SendList;
 		virtual void handleMessage(std::shared_ptr<Message> msg);
 		bool m_Ready = true;
+	private:
+		ui64 m_lastPingTime = 0;
+		ui64 m_lastPongTime = 0;
 	};
 	class KcpSessionS
 		:public KcpSession
@@ -89,6 +93,9 @@ namespace nicehero
 		KcpServer* m_KcpServer = nullptr;
 		void removeSelf();
 		void removeSelfImpl();
+		void doRead()final;
+	private:
+		bool m_waitRemove = false;
 	};
 	class KcpSessionC
 		:public KcpSession,public Server
@@ -102,6 +109,7 @@ namespace nicehero
 		void startRead();
 		std::atomic<bool> m_isInit;
 	protected:
+		void doRead()final;
 		void removeSelf();
 	private:
 		int checkServerSign(ui8* data_);//return 0 ok 1 error 2 warning
