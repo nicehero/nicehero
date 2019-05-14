@@ -165,7 +165,6 @@ public:
 					m_PreSessionsLock.unlock();
 					if (bytesRecvd >= PUBLIC_KEY_SIZE + SIGN_SIZE + 1 && ks)
 					{
-						KcpSessionS* ssx = dynamic_cast<KcpSessionS*>((KcpSession*)nullptr);
 						KcpSessionS* ss = dynamic_cast<KcpSessionS*>(ks.get());
 						if (ss)
 						{
@@ -749,7 +748,8 @@ public:
 	void KcpSessionC::init(bool isAsync)
 	{
 		std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(m_impl->getIoContext());
-		std::atomic<int> isOver = 0;
+		std::atomic<int> isOver;
+		isOver = 0;
 		auto f = [&, t,isAsync](std::error_code ec) {
 			t->cancel();
 			if (ec)
@@ -799,6 +799,11 @@ public:
 			if (ec)
 			{
 				nlogerr("KcpSessionC::init err %s", ec.message().c_str());
+				return;
+			}
+			if (sentSize != PUBLIC_KEY_SIZE + SIGN_SIZE + 1)
+			{
+				nlogerr("KcpSessionC::init err %s", "sentSize != PUBLIC_KEY_SIZE + SIGN_SIZE + 1");
 				return;
 			}
 			m_buffer = std::shared_ptr<std::string>(new std::string(NETWORK_BUF_SIZE, 0));
