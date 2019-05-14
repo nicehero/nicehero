@@ -17,12 +17,18 @@ void MyClient::close()
 	nlog("client close");
 	TcpSessionC::close();
 }
-int main()
+int main(int argc, char* argv[])
 {
+	std::string serverIP = "127.0.0.1";
+	if (argc > 1)
+	{
+		serverIP = argv[1];
+	}
+
 	nicehero::start(true);
 	std::vector<std::shared_ptr<MyClient> > cs;
 	std::shared_ptr<nicehero::KcpSessionC> kcpc = std::make_shared<nicehero::KcpSessionC>();
-	kcpc->connect("127.0.0.1", 7001);
+	kcpc->connect(serverIP, 7001);
 	kcpc->init();
 	kcpc->startRead();
 	std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(nicehero::gService);
@@ -52,7 +58,7 @@ int main()
 		std::shared_ptr<MyClient> c = std::make_shared<MyClient>();
 		cs.push_back(c);
 		nicehero::post([=] {
-			c->connect("127.0.0.1", 7000);
+			c->connect(serverIP, 7000);
 			c->init();
 			c->sendMessage(xxx);
 			ui32 dat[2] = { 32,0 };

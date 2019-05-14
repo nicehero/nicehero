@@ -710,7 +710,6 @@ public:
 		m_isInit = false;
 		m_isStartRead2 = false;
 		m_impl = std::make_shared<KcpSessionImpl>(*this);
-		m_impl->m_socket = std::make_shared<asio::ip::udp::socket>(m_impl->getIoContext(), asio::ip::udp::endpoint());
 		m_Ready = false;
 	}
 
@@ -729,6 +728,14 @@ public:
 			return false;
 		}
 		char buff = 1;
+		if (addr.is_v6())
+		{
+			m_impl->m_socket = std::make_shared<asio::ip::udp::socket>(m_impl->getIoContext(), asio::ip::udp::v6());
+		}
+		else
+		{
+			m_impl->m_socket = std::make_shared<asio::ip::udp::socket>(m_impl->getIoContext(), asio::ip::udp::endpoint());
+		}
 		m_impl->m_endpoint = asio::ip::udp::endpoint(addr, port);
 		auto sentSize = m_impl->m_socket->send_to(asio::buffer(&buff, 1), { addr,port });
 		if (sentSize != 1)

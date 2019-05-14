@@ -180,6 +180,7 @@ nicehero::KcpSessionS* MyKcpServer::createSession()
 
 int main(int argc, char* argv[])
 {
+	bool v6 = (argc > 1 && std::string(argv[1]) == "v6") ? true : false;
 	kcpTest();
 	task t;
 	t();
@@ -225,9 +226,14 @@ int main(int argc, char* argv[])
 	__int64  x = large_interger2.QuadPart - large_interger1.QuadPart;
 	printf("%lf\n", x * 1000 / dff);
 #endif
-	auto tcpServer = MyServer("0.0.0.0", 7000);
+	std::string listenIP = "0.0.0.0";
+	if (v6)
+	{
+		listenIP = "::";
+	}
+	auto tcpServer = MyServer(listenIP, 7000);
 	tcpServer.accept();
-	auto kcpServer = MyKcpServer("0.0.0.0", 7001);
+	auto kcpServer = MyKcpServer(listenIP, 7001);
  	kcpServer.accept();
 	auto privateKey1 = tcpServer.GetPrivateKeyString();
 	tcpServer.SetPrivateKeyString(privateKey1);
