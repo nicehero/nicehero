@@ -73,6 +73,7 @@ namespace nicehero
 		std::list<Message> m_SendList;
 		virtual void handleMessage(std::shared_ptr<Message> msg);
 		bool m_Ready = true;
+		std::atomic_bool m_closed;
 	private:
 		ui64 m_lastPingTime = 0;
 		ui64 m_lastPongTime = 0;
@@ -89,13 +90,14 @@ namespace nicehero
 		void init(KcpServer& server);
 		void init2(KcpServer& server);
 		void init3(KcpServer& server);
+		void close();
 	protected:
 		KcpServer* m_KcpServer = nullptr;
 		void removeSelf();
 		void removeSelfImpl();
 		void doRead()final;
 	private:
-		bool m_waitRemove = false;
+		std::atomic_bool m_waitRemove;
 	};
 	class KcpSessionC
 		:public KcpSession,public Server

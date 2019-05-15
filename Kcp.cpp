@@ -314,7 +314,7 @@ public:
 
 	KcpSessionS::KcpSessionS()
 	{
-
+		m_waitRemove = false;
 	}
 
 	KcpSessionS::~KcpSessionS()
@@ -411,13 +411,22 @@ public:
 	}
 
 
+	void KcpSessionS::close()
+	{
+		KcpSession::close();
+		removeSelf();
+	}
+
 	void KcpSessionS::removeSelf()
 	{
-		m_waitRemove = true;
-		auto self(shared_from_this());
-		nicehero::post([&,self] {
-			removeSelfImpl();
-		});
+		if (!m_waitRemove)
+		{
+			m_waitRemove = true;
+			auto self(shared_from_this());
+			nicehero::post([&, self] {
+				removeSelfImpl();
+			});
+		}
 	}
 
 	void KcpSessionS::removeSelfImpl()
@@ -448,6 +457,7 @@ public:
 	{
 		m_impl = std::make_shared<KcpSessionImpl>(*this);
 		m_IsSending = false;
+		m_closed = false;
 	}
 
 	void KcpSession::init(KcpServer& server)
@@ -621,6 +631,10 @@ public:
 
 	void KcpSession::handleMessage(std::shared_ptr<Message> msg)
 	{
+		if (m_closed)
+		{
+			return;
+		}
 		if (msg->getMsgID() == KCP_READY_NTF)
 		{
 			m_Ready = true;
@@ -650,6 +664,7 @@ public:
 
 	void KcpSession::close()
 	{
+		m_closed = true;
 	}
 
 	void KcpSession::setMessageParser(KcpMessageParser* messageParser)
@@ -664,6 +679,10 @@ public:
 
 	void KcpSession::doSend(Message& msg,bool pureUdp)
 	{
+		if (m_closed)
+		{
+			return;
+		}
 		auto self(shared_from_this());
 		std::shared_ptr<Message> msg_ = std::make_shared<Message>();
 		msg_->swap(msg);
