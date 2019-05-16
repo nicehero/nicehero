@@ -115,7 +115,7 @@ KCP_SESSION_COMMAND(MyKcpClient, XDataID)
 {
 	XData d;
 	msg >> d;
-	nlog("kcp ping:%dms", (i32)(nicehero::Clock::getInstance()->getMilliSeconds() - d.n1));
+	nlog("\t\t\t\tkcp ping:%dms", (i32)(nicehero::Clock::getInstance()->getMilliSeconds() - d.n1));
 	std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(nicehero::gService);
 	t->expires_from_now(std::chrono::seconds(1));
 	t->async_wait([t](std::error_code ec) {
