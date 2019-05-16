@@ -297,14 +297,18 @@ int main(int argc, char* argv[])
 	return 0;
 }
 using namespace Proto;
-SESSION_COMMAND(MyClient, XDataID)
+TCP_SESSION_COMMAND(MyClient, XDataID)
 {
-	nlog("recv100 size:%d",int(msg.getSize()));
-
+	nlog("tcp recv XData size:%d",int(msg.getSize()));
+	XData d;
+	msg >> d;
+	d.s1 = "xxxx";
+	MyClient& client = (MyClient&)session;
+	client.sendMessage(d);
 	return true;
 }
 
-SESSION_COMMAND(MyClient, 101)
+TCP_SESSION_COMMAND(MyClient, 101)
 {
 	MyClient& client = (MyClient&)session;
 	//nlog("recv101 recv101Num:%d", client.recv101Num);
@@ -313,22 +317,19 @@ SESSION_COMMAND(MyClient, 101)
 }
 static int numClients = 0;
 
-SESSION_COMMAND(MyClient, 102)
+TCP_SESSION_COMMAND(MyClient, 102)
 {
 	MyClient& client = (MyClient&)session;
 	++numClients;
-	nlog("recv102 recv101Num:%d,%d", client.recv101Num,numClients);
-	XData d;
-	d.n1 = 2;
-	d.s1 = "xxxx";
-	client.sendMessage(d);
+	nlog("tcp recv102 recv101Num:%d,%d", client.recv101Num,numClients);
 	return true;
 }
 
 KCP_SESSION_COMMAND(MyKcpSession, 100)
 {
+	nlog("kcp recv XData size:%d", int(msg.getSize()));
 	XData d;
-	d.n1 = 2;
+	msg >> d;
 	d.s1 = "xxxx";
 	session.sendMessage(d);
 	return true;
