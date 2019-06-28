@@ -752,6 +752,7 @@ public:
 		// param5 disable congestion control
 		ikcp_nodelay(m_impl->m_kcp, 1, 2, 2, 1);
 		ikcp_wndsize(m_impl->m_kcp, 256, 256);
+		m_impl->m_kcp->interval = 1;
 	}
 
 	void KcpSession::init3(KcpServer& server)
