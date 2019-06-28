@@ -1,7 +1,6 @@
 #ifndef ____NICE__COPYABLEPTR____
 #define ____NICE__COPYABLEPTR____
 #include <memory>
-#include "Log.h"
 namespace nicehero {
 
 	/* 
