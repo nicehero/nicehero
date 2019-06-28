@@ -317,7 +317,7 @@ public:
 			}
 			if (msgLen <= len)
 			{
-				auto recvMsg = CopyablePtr<Message>(new Message(data, *((ui32*)data)));
+				auto recvMsg = make_copyable<Message>(data, *((ui32*)data));
 				
 // 				if (m_MessageParser && m_MessageParser->m_commands[recvMsg->getMsgID()] == nullptr)
 // 				{

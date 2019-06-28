@@ -212,7 +212,7 @@ public:
 					{
 						return;
 					}
-					auto recvMsg = CopyablePtr<Message>(new Message(buffer->c_str() + 1, len));
+					auto recvMsg = make_copyable<Message>(buffer->c_str() + 1, len);
 					nicehero::post([&,recvMsg,uid] {
 						auto it = m_server.m_sessions.find(uid);
 						if (it != m_server.m_sessions.end() && it->second)
@@ -538,7 +538,7 @@ public:
 			}
 			if (msgLen <= len)
 			{
-				auto recvMsg = CopyablePtr<Message>(new Message(data, *((ui32*)data)));
+				auto recvMsg = make_copyable<Message>(data, *((ui32*)data));
 				
 // 				if (m_MessageParser && m_MessageParser->m_commands[recvMsg->getMsgID()] == nullptr)
 // 				{
@@ -958,7 +958,7 @@ public:
 				{
 					return;
 				}
-				auto recvMsg = CopyablePtr<Message>(new Message(m_buffer->c_str() + 1, len));
+				auto recvMsg = make_copyable<Message>(m_buffer->c_str() + 1, len);
 				nicehero::post([&, this, recvMsg, uid] {
 					handleMessage(recvMsg);
 				});

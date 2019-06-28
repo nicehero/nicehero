@@ -58,9 +58,9 @@ namespace nicehero {
 	/// Make a CopyablePtr from the argument. Because the name "makeCopyablePtr"
 	/// is already quite transparent in its intent, this will work for lvalues as
 	/// if you had wrapped them in std::move.
-	template <class T, class T0 = typename std::remove_reference<T>::type>
-	CopyablePtr<T0> makeCopyablePtr(T&& t) {
-		return CopyablePtr<T0>(std::forward<T0>(t));
+	template <class T, class... _Types>
+	CopyablePtr<T> make_copyable(_Types&&... _Args) {
+		return CopyablePtr<T>(new T(std::forward<_Types>(_Args)...));
 	}
 
 } // namespace folly
