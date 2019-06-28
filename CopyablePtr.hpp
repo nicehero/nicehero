@@ -1,7 +1,7 @@
 #ifndef ____NICE__COPYABLEPTR____
 #define ____NICE__COPYABLEPTR____
 #include <memory>
-
+#include "Log.h"
 namespace nicehero {
 
 	/* 
@@ -15,7 +15,7 @@ namespace nicehero {
 		CopyablePtr() = default;
 
 		/// Move a value in.
-		explicit CopyablePtr(T&& t) : value(std::move(t)) {}
+		explicit CopyablePtr(T&& t) = delete;
 		explicit CopyablePtr(T* t) : value(t) {}
 
 		/// copy is move
