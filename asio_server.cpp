@@ -18,6 +18,7 @@
 #include "Clock.h"
 #include "Kcp.h"
 #include <kcp/ikcp.h>
+#include "CopyablePtr.hpp"
 
 void some_sync(std::function<void()> f)
 {
@@ -60,15 +61,6 @@ private:
 #include <map>
 
 extern std::map<int,int> testG;
-class G
-{
-public:
-	G()
-	{
-// 		testG[5] = 5;
-	}
-};
-G gg;
 std::map<int, int> testG;
 
 void testType(A* a, A* a2)
@@ -178,6 +170,35 @@ nicehero::KcpSessionS* MyKcpServer::createSession()
 	return new MyKcpSession();
 }
 
+auto g_deleter = [](int* p) {printf("g_deleter()\n"); delete p; p = nullptr; };
+//void g_delete(int* p){ delete p; p = nullptr; }
+class G
+{
+public:
+	G()
+		:m_u(new int(0), g_deleter)
+	{
+
+	}
+
+	G(G&& other) : m_u(std::move(other.m_u)) 
+	{
+		printf("G( G&& g)\n");
+	}
+
+	G(const G& g)
+		:m_u(std::move(g.m_u))
+	{
+		printf("G(const G& g)\n");
+	}
+	~G()
+	{
+		printf("~G()\n");
+	}
+	mutable std::unique_ptr<int,decltype(g_deleter) > m_u;
+	char nnn[10] = "a\n";
+};
+
 int main(int argc, char* argv[])
 {
 	bool v6 = (argc > 1 && std::string(argv[1]) == "v6") ? true : false;
@@ -249,6 +270,12 @@ int main(int argc, char* argv[])
 		{
 			ff();
 		}
+	}
+	{
+		nicehero::CopyablePtr<G> ug(new G());
+		nicehero::post([ug] {
+			printf("nicehero::post [g]\n");
+		});
 	}
 	nicehero::post([] {
 		asio::ip::tcp::socket s(nicehero::gService);

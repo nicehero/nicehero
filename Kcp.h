@@ -11,6 +11,8 @@
 #include "Message.h"
 #include "NoCopy.h"
 #include <functional>
+#include "CopyablePtr.hpp"
+
 namespace nicehero
 {
 	const i32 IKCP_OVERHEAD = 89;
@@ -71,7 +73,7 @@ namespace nicehero
 		void doSend(Message& msg, bool pureUdp);
 		std::atomic_bool m_IsSending;
 		std::list<Message> m_SendList;
-		virtual void handleMessage(std::shared_ptr<Message> msg);
+		virtual void handleMessage(CopyablePtr<Message> msg);
 		bool m_Ready = true;
 		std::atomic_bool m_closed;
 	private:

@@ -11,6 +11,8 @@
 #include "Message.h"
 #include "NoCopy.h"
 #include <functional>
+#include "CopyablePtr.hpp"
+
 namespace nicehero
 {
 	class TcpSession;
@@ -64,7 +66,7 @@ namespace nicehero
 		void doSend();
 		std::atomic_bool m_IsSending;
 		std::list<Message> m_SendList;
-		virtual void handleMessage(std::shared_ptr<Message> msg);
+		virtual void handleMessage(CopyablePtr<Message> msg);
 	};
 	class TcpSessionS
 		:public TcpSession

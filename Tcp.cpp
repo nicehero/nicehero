@@ -317,7 +317,7 @@ public:
 			}
 			if (msgLen <= len)
 			{
-				auto recvMsg = std::make_shared<Message>(data, *((ui32*)data));
+				auto recvMsg = CopyablePtr<Message>(new Message(data, *((ui32*)data)));
 				
 // 				if (m_MessageParser && m_MessageParser->m_commands[recvMsg->getMsgID()] == nullptr)
 // 				{
@@ -377,14 +377,14 @@ public:
 			memcpy(prevMsg.m_buff + prevMsg.m_writePoint, data + cutSize, msgLen - prevMsg.m_writePoint);
 			data = data + cutSize + (msgLen - prevMsg.m_writePoint);
 			len = len - cutSize - (msgLen - prevMsg.m_writePoint);
-			auto recvMsg = std::make_shared<Message>();
+			auto recvMsg = CopyablePtr<Message>();
 			recvMsg->swap(prevMsg);
 // 			if (m_MessageParser && m_MessageParser->m_commands[recvMsg->getMsgID()] == nullptr)
 // 			{
 // 				nlogerr("TcpSession::parseMsg err 2");
 // 			}
 
-			nicehero::post([=] {
+			nicehero::post([this,self,recvMsg] {
 				self->handleMessage(recvMsg);
 			});
 			if (len > 0)
@@ -408,7 +408,7 @@ public:
 
 	}
 
-	void TcpSession::handleMessage(std::shared_ptr<Message> msg)
+	void TcpSession::handleMessage(CopyablePtr<Message> msg)
 	{
 		if (m_MessageParser)
 		{

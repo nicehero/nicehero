@@ -212,7 +212,7 @@ public:
 					{
 						return;
 					}
-					auto recvMsg = std::make_shared<Message>(buffer->c_str() + 1, len);
+					auto recvMsg = CopyablePtr<Message>(new Message(buffer->c_str() + 1, len));
 					nicehero::post([&,recvMsg,uid] {
 						auto it = m_server.m_sessions.find(uid);
 						if (it != m_server.m_sessions.end() && it->second)
@@ -538,7 +538,7 @@ public:
 			}
 			if (msgLen <= len)
 			{
-				auto recvMsg = std::make_shared<Message>(data, *((ui32*)data));
+				auto recvMsg = CopyablePtr<Message>(new Message(data, *((ui32*)data)));
 				
 // 				if (m_MessageParser && m_MessageParser->m_commands[recvMsg->getMsgID()] == nullptr)
 // 				{
@@ -598,14 +598,14 @@ public:
 			memcpy(prevMsg.m_buff + prevMsg.m_writePoint, data + cutSize, msgLen - prevMsg.m_writePoint);
 			data = data + cutSize + (msgLen - prevMsg.m_writePoint);
 			len = len - cutSize - (msgLen - prevMsg.m_writePoint);
-			auto recvMsg = std::make_shared<Message>();
+			auto recvMsg = CopyablePtr<Message>();
 			recvMsg->swap(prevMsg);
 // 			if (m_MessageParser && m_MessageParser->m_commands[recvMsg->getMsgID()] == nullptr)
 // 			{
 // 				nlogerr("KcpSession::parseMsg err 2");
 // 			}
 
-			nicehero::post([=] {
+			nicehero::post([self,recvMsg] {
 				self->handleMessage(recvMsg);
 			});
 			if (len > 0)
@@ -629,7 +629,7 @@ public:
 
 	}
 
-	void KcpSession::handleMessage(std::shared_ptr<Message> msg)
+	void KcpSession::handleMessage(CopyablePtr<Message> msg)
 	{
 		if (m_closed)
 		{
@@ -957,7 +957,7 @@ public:
 				{
 					return;
 				}
-				auto recvMsg = std::make_shared<Message>(m_buffer->c_str() + 1, len);
+				auto recvMsg = CopyablePtr<Message>(new Message(m_buffer->c_str() + 1, len));
 				nicehero::post([&, this, recvMsg, uid] {
 					handleMessage(recvMsg);
 				});

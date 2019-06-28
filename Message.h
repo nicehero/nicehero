@@ -3,11 +3,14 @@
 #include <memory>
 #include <memory.h>
 #include "Type.h"
+#include "NoCopy.h"
+
 #define MSG_SIZE 32 * 1024
 namespace nicehero
 {
 
 	class Message
+		:public NoCopy
 	{
 	public:
 		Message()
@@ -24,6 +27,10 @@ namespace nicehero
 			}
 			buildBuff(size_);
 			memcpy(m_buff, buff, size_);
+		}
+		Message(Message&& other)
+		{
+			swap(other);
 		}
 		Message& ID(ui16 msgID);
 		void write_data(const void* buff, size_t size_)
