@@ -59,7 +59,7 @@ namespace nicehero
 		kcpuid& getUid();
 	protected:
 		void init_kcp();
-		std::shared_ptr<KcpSessionImpl> m_impl;
+		std::unique_ptr<KcpSessionImpl> m_impl;
 		std::string m_hash;
 		kcpuid m_uid;
 		ui32 m_conv = INVALID_CONV;

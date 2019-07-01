@@ -244,7 +244,7 @@ public:
 
 	TcpSession::TcpSession()
 	{
-		m_impl = std::make_shared<TcpSessionImpl>(*this);
+		m_impl = std::make_unique<TcpSessionImpl>(*this);
 		m_IsSending = false;
 	}
 
@@ -549,7 +549,7 @@ public:
 	TcpSessionC::TcpSessionC()
 	{
 		m_isInit = false;
-		m_impl = std::make_shared<TcpSessionImpl>(*this);
+		m_impl = std::make_unique<TcpSessionImpl>(*this);
 	}
 
 	TcpSessionC::~TcpSessionC()

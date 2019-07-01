@@ -455,7 +455,7 @@ public:
 
 	KcpSession::KcpSession()
 	{
-		m_impl = std::make_shared<KcpSessionImpl>(*this);
+		m_impl = std::make_unique<KcpSessionImpl>(*this);
 		m_IsSending = false;
 		m_closed = false;
 	}
@@ -784,7 +784,7 @@ public:
 	{
 		m_isInit = false;
 		m_isStartRead2 = false;
-		m_impl = std::make_shared<KcpSessionImpl>(*this);
+		m_impl = std::make_unique<KcpSessionImpl>(*this);
 		m_Ready = false;
 	}
 

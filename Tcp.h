@@ -53,7 +53,7 @@ namespace nicehero
 		TcpMessageParser* m_MessageParser = nullptr;
 		tcpuid& getUid();
 	protected:
-		std::shared_ptr<TcpSessionImpl> m_impl;
+		std::unique_ptr<TcpSessionImpl> m_impl;
 		std::string m_hash;
 		tcpuid m_uid;
 		ui64 m_serialID;
