@@ -76,7 +76,7 @@ public:
 		}
 		try
 		{
-			m_impl = std::make_shared<TcpServerImpl>(addr, port,*this);
+			m_impl = std::unique_ptr<TcpServerImpl>(new TcpServerImpl(addr, port,*this));
 		}
 		catch (asio::system_error & ec)
 		{
@@ -244,7 +244,7 @@ public:
 
 	TcpSession::TcpSession()
 	{
-		m_impl = std::make_unique<TcpSessionImpl>(*this);
+		m_impl = std::unique_ptr<TcpSessionImpl>(new TcpSessionImpl(*this));
 		m_IsSending = false;
 	}
 
@@ -549,7 +549,7 @@ public:
 	TcpSessionC::TcpSessionC()
 	{
 		m_isInit = false;
-		m_impl = std::make_unique<TcpSessionImpl>(*this);
+		m_impl = std::unique_ptr<TcpSessionImpl>(new TcpSessionImpl(*this));
 	}
 
 	TcpSessionC::~TcpSessionC()

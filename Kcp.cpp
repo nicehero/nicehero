@@ -245,7 +245,7 @@ public:
 		}
 		try
 		{
-			m_impl = std::make_shared<KcpServerImpl>(addr, port,*this);
+			m_impl = std::unique_ptr<KcpServerImpl>(new KcpServerImpl(addr, port,*this));
 		}
 		catch (asio::system_error & ec)
 		{
@@ -367,7 +367,7 @@ public:
 		}
 		std::shared_ptr<asio::steady_timer> t = std::make_shared<asio::steady_timer>(m_impl->getIoContext());
 		t->expires_from_now(std::chrono::seconds(2));
-		t->async_wait([&,server,self,t](std::error_code ec) {
+		t->async_wait([&,self,t](std::error_code ec) {
 			if (!ec)
 			{
 // 				nlog("session connecting timeout");
@@ -455,7 +455,7 @@ public:
 
 	KcpSession::KcpSession()
 	{
-		m_impl = std::make_unique<KcpSessionImpl>(*this);
+		m_impl = std::unique_ptr<KcpSessionImpl>(new KcpSessionImpl(*this));
 		m_IsSending = false;
 		m_closed = false;
 	}
@@ -784,7 +784,7 @@ public:
 	{
 		m_isInit = false;
 		m_isStartRead2 = false;
-		m_impl = std::make_unique<KcpSessionImpl>(*this);
+		m_impl = std::unique_ptr<KcpSessionImpl>(new KcpSessionImpl(*this));
 		m_Ready = false;
 	}
 

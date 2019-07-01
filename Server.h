@@ -3,6 +3,7 @@
 
 #include "Type.h"
 #include <string>
+#include "NoCopy.h"
 
 namespace nicehero
 {
@@ -11,6 +12,7 @@ namespace nicehero
 	const ui32 SIGN_SIZE = 64;
 	const ui32 PRIVATE_KEY_SIZE = 32;
 	class Server
+		:public NoCopy
 	{
 	public:
 		Server();

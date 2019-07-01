@@ -109,7 +109,7 @@ namespace nicehero
 		TcpServer(const std::string& ip,ui16 port );
 		virtual ~TcpServer();
 
-		std::shared_ptr<TcpServerImpl> m_impl;
+		std::unique_ptr<TcpServerImpl> m_impl;
 
 		bool m_Started = false;
 

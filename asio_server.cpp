@@ -252,9 +252,9 @@ int main(int argc, char* argv[])
 	{
 		listenIP = "::";
 	}
-	auto tcpServer = MyServer(listenIP, 7000);
+	MyServer tcpServer(listenIP, 7000);
 	tcpServer.accept();
-	auto kcpServer = MyKcpServer(listenIP, 7001);
+	MyKcpServer kcpServer(listenIP, 7001);
  	kcpServer.accept();
 	auto privateKey1 = tcpServer.GetPrivateKeyString();
 	tcpServer.SetPrivateKeyString(privateKey1);

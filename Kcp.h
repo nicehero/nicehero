@@ -130,7 +130,7 @@ namespace nicehero
 		KcpServer(const std::string& ip,ui16 port );
 		virtual ~KcpServer();
 
-		std::shared_ptr<KcpServerImpl> m_impl;
+		std::unique_ptr<KcpServerImpl> m_impl;
 
 		bool m_Started = false;
 
