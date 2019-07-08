@@ -4,6 +4,7 @@
 #include <memory.h>
 #include "Type.h"
 #include "NoCopy.h"
+#include <vector>
 
 #define MSG_SIZE 32 * 1024
 namespace nicehero
