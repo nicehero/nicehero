@@ -27,7 +27,7 @@ namespace nicehero
 	struct Binary
 	{
 		Binary() {}
-		Binary(ui32 s, void* data) 
+		Binary(ui32 s, const void* data) 
 			:m_Size(s)
 		{
 			m_Data = std::unique_ptr<char[]>(new char[m_Size]);
