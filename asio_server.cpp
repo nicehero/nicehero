@@ -201,6 +201,15 @@ public:
 
 int main(int argc, char* argv[])
 {
+	Proto::XData xxx;
+	xxx.n1 = nicehero::Clock::getInstance()->getMilliSeconds();
+	xxx.s1 = "66666666";
+	xxx.s2 = nicehero::Binary(5, "v666v");
+	nicehero::Message msg_;
+	xxx.toMsg(msg_);
+	Proto::XData yyy;
+	msg_ >> yyy;
+
 	bool v6 = (argc > 1 && std::string(argv[1]) == "v6") ? true : false;
 	kcpTest();
 	task t;
@@ -326,10 +335,13 @@ int main(int argc, char* argv[])
 using namespace Proto;
 TCP_SESSION_COMMAND(MyClient, XDataID)
 {
-	nlog("tcp recv XData size:%d",int(msg.getSize()));
 	XData d;
 	msg >> d;
 	d.s1 = "xxxx";
+	std::string s;
+	s.assign(d.s2.m_Data.get(), d.s2.m_Size);
+
+	nlog("tcp recv XData size:%d,%s", int(msg.getSize()),s.c_str());
 	MyClient& client = (MyClient&)session;
 	client.sendMessage(d);
 	return true;
@@ -352,12 +364,15 @@ TCP_SESSION_COMMAND(MyClient, 102)
 	return true;
 }
 
-KCP_SESSION_COMMAND(MyKcpSession, 100)
+KCP_SESSION_COMMAND(MyKcpSession, XDataID)
 {
-	nlog("kcp recv XData size:%d", int(msg.getSize()));
 	XData d;
 	msg >> d;
 	d.s1 = "xxxx";
+	std::string s;
+	s.assign(d.s2.m_Data.get(), d.s2.m_Size);
+	nlog("kcp recv XData size:%d,%s", int(msg.getSize()),s.c_str());
+	
 	session.sendMessage(d);
 	return true;
 }

@@ -11,6 +11,7 @@ namespace Proto
 	public:
 		ui64 bn = 1;
 		std::string bs;
+		std::vector<std::string> bs2 = {"55","66","77"};
 		ui32 getSize() const;
 		void serializeTo(nicehero::Message& msg) const;
 		void unserializeFrom(nicehero::Message& msg);
@@ -24,6 +25,7 @@ namespace Proto
 		ui64 n1 = 1;
 		XDataBase d1;
 		std::string s1;
+		nicehero::Binary s2;
 
 		ui32 getSize() const;
 		ui16 getID() const;
@@ -43,6 +45,7 @@ namespace Proto
 		ui32 s = 0;
 		s += nicehero::Serializable::getSize(bn);
 		s += nicehero::Serializable::getSize(bs);
+		s += nicehero::Serializable::getSize(bs2);
 		return s;
 	}
 
@@ -52,6 +55,7 @@ namespace Proto
 		s += nicehero::Serializable::getSize(n1);
 		s += nicehero::Serializable::getSize(d1);
 		s += nicehero::Serializable::getSize(s1);
+		s += nicehero::Serializable::getSize(s2);
 		return s;
 	}
 
@@ -59,6 +63,7 @@ namespace Proto
 	{
 		m << p.bn;
 		m << p.bs;
+		m << p.bs2;
 		return m;
 	}
 
@@ -66,6 +71,7 @@ namespace Proto
 	{
 		m >> p.bn;
 		m >> p.bs;
+		m >> p.bs2;
 		return m;
 	}
 
@@ -74,6 +80,7 @@ namespace Proto
 		m << p.n1;
 		m << p.d1;
 		m << p.s1;
+		m << p.s2;
 		return m;
 	}
 
@@ -82,6 +89,7 @@ namespace Proto
 		m >> p.n1;
 		m >> p.d1;
 		m >> p.s1;
+		m >> p.s2;
 		return m;
 	}
 

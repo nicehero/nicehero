@@ -140,14 +140,31 @@ namespace nicehero
 		{
 			return (ui32)s.size() + 4;
 		}
+		ui32 getSize(const Binary& s) const
+		{
+			return (ui32)s.m_Size + 4;
+		}
 		ui32 getSize(const ui64& s) const
 		{
 			return sizeof(s);
 		}
+
+		template <typename T>
+		ui32 getSize(const std::vector<T>& s) const
+		{
+			ui32 si = 4;
+			for (size_t i = 0; i < s.size(); ++ i)
+			{
+				si += getSize(s[i]);
+			}
+			return si;
+		}
+
 		ui32 getSize(const Serializable& s) const
 		{
 			return s.getSize();
 		}
+
 		virtual ui32 getSize() const = 0;
 		void toMsg(Message& msg) const;
 		virtual ui16 getID() const 
@@ -181,6 +198,25 @@ namespace nicehero
 		return m;
 	}
 
+	inline Message & operator << (Message &m, const Binary& p)
+	{
+		m.write_data(&p.m_Size, sizeof(p.m_Size));
+		m.write_data(p.m_Data.get(),p.m_Size);
+		return m;
+	}
+
+	template <typename T>
+	Message & operator << (Message &m, const std::vector<T> & p)
+	{
+		ui32 s = ui32(p.size());
+		m.write_data(&s, sizeof(ui32));
+		for (size_t i = 0; i < p.size(); ++ i)
+		{
+			m << p[i];
+		}
+		return m;
+	}
+
 	inline Message & operator >> (Message &m, ui64 & p)
 	{
 		p = *(ui64*)m.read_data(sizeof(p));
@@ -194,6 +230,29 @@ namespace nicehero
 		p.assign((const char*)m.read_data(s), s);
 		return m;
 	}
+
+	template <typename T>
+	Message & operator >> (Message &m, std::vector<T> & p)
+	{
+		ui32 s = 0;
+		s = *(ui32*)m.read_data(4);
+		for (size_t i = 0; i < s; ++i)
+		{
+			T t;
+			m >> t;
+			p.push_back(std::move(t));
+		}
+		return m;
+	}
+
+	inline Message & operator >> (Message &m, Binary& p)
+	{
+		p.m_Size = *(ui32*)m.read_data(4);
+		p.m_Data = std::unique_ptr<char[]>(new char[p.m_Size]);
+		memcpy(p.m_Data.get(), m.read_data(p.m_Size), p.m_Size);
+		return m;
+	}
+
 
 }
 

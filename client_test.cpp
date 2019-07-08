@@ -48,6 +48,7 @@ int main(int argc, char* argv[])
 		Proto::XData xxx;
 		xxx.n1 = nicehero::Clock::getInstance()->getMilliSeconds();
 		xxx.s1 = "66666666";
+		xxx.s2 = nicehero::Binary(5, "v666v");
 		kcpc->sendMessage(xxx);
 	});
 
@@ -62,6 +63,7 @@ int main(int argc, char* argv[])
 			Proto::XData xxx;
 			xxx.n1 = nicehero::Clock::getInstance()->getMilliSeconds();
 			xxx.s1 = "66666666";
+			xxx.s2 = nicehero::Binary(5, "v666v");
 			c->sendMessage(xxx);
 			ui32 dat[2] = { 32,0 };
 			*(ui16*)(dat + 1) = 101;
@@ -106,6 +108,7 @@ TCP_SESSION_COMMAND(MyClient, XDataID)
 		Proto::XData xxx;
 		xxx.n1 = nicehero::Clock::getInstance()->getMilliSeconds();
 		xxx.s1 = "66666666";
+		xxx.s2 = nicehero::Binary(5, "v666v");
 		c->sendMessage(xxx);
 	});
 
@@ -122,6 +125,7 @@ KCP_SESSION_COMMAND(MyKcpClient, XDataID)
 		Proto::XData xxx;
 		xxx.n1 = nicehero::Clock::getInstance()->getMilliSeconds();
 		xxx.s1 = "66666666";
+		xxx.s2 = nicehero::Binary(5, "v666v");
 		kcpc->sendMessage(xxx);
 	});
 	return true;
