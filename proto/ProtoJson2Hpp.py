@@ -173,17 +173,8 @@ def build3(filename):
 			if i['isMsg'] == True:
 				f.write('\t\tui16 getID() const;\n')
 			f.write('\t};\n\n')
+		f.write('}\n\nnamespace Proto\n{\n')
 		for i in files[outFilename]:
-			f.write('''
-\tinline void %s::serializeTo(nicehero::Message& msg) const
-\t{
-\t\tmsg << (*this);
-\t}
-\tinline void %s::unserializeFrom(nicehero::Message& msg)
-\t{
-\t\tmsg >> (*this);
-\t}
-'''%(i['typeName'],i['typeName']))
 			f.write('\tinline nicehero::Message & operator << (nicehero::Message &m, const %s& p)\n\t{\n'%(i['typeName']))
 			for j in i['fields']:
 				f.write('\t\tm << p.%s;\n'%(j["name"]))
@@ -193,6 +184,25 @@ def build3(filename):
 			for j in i['fields']:
 				f.write('\t\tm >> p.%s;\n'%(j["name"]))
 			f.write('\t\treturn m;\n\t}\n')
+			f.write('''
+\tinline void %s::serializeTo(nicehero::Message& msg) const
+\t{
+\t\tmsg << (*this);
+\t}
+\tinline void %s::unserializeFrom(nicehero::Message& msg)
+\t{
+\t\tmsg >> (*this);
+\t}'''%(i['typeName'],i['typeName']))
+			f.write('''
+\tinline ui32 %s::getSize() const
+\t{
+\t\tui32 s = 0;
+''' % (i['typeName']))
+			for j in i['fields']:
+				f.write('\t\ts += nicehero::Serializable::getSize(%s);\n' % (j["name"]))
+			f.write('''\t\treturn s;
+\t}
+''')
 			if i["isMsg"] == True:
 				f.write('''
 \tinline ui16 %s::getID() const
