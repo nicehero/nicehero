@@ -30,8 +30,11 @@ namespace nicehero
 		Binary(ui32 s, const void* data) 
 			:m_Size(s)
 		{
-			m_Data = std::unique_ptr<char[]>(new char[m_Size]);
-			memcpy(m_Data.get(), data, m_Size);
+			if (s > 0)
+			{
+				m_Data = std::unique_ptr<char[]>(new char[m_Size]);
+				memcpy(m_Data.get(), data, m_Size);
+			}
 		}
 		ui32 m_Size = 0;
 		std::unique_ptr<char[]> m_Data;

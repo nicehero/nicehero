@@ -201,15 +201,6 @@ public:
 
 int main(int argc, char* argv[])
 {
-	Proto::XData xxx;
-	xxx.n1 = nicehero::Clock::getInstance()->getMilliSeconds();
-	xxx.s1 = "66666666";
-	xxx.s2 = nicehero::Binary(5, "v666v");
-	nicehero::Message msg_;
-	xxx.toMsg(msg_);
-	Proto::XData yyy;
-	msg_ >> yyy;
-
 	bool v6 = (argc > 1 && std::string(argv[1]) == "v6") ? true : false;
 	kcpTest();
 	task t;

@@ -249,8 +249,11 @@ namespace nicehero
 	inline Message & operator >> (Message &m, Binary& p)
 	{
 		p.m_Size = *(ui32*)m.read_data(4);
-		p.m_Data = std::unique_ptr<char[]>(new char[p.m_Size]);
-		memcpy(p.m_Data.get(), m.read_data(p.m_Size), p.m_Size);
+		if (p.m_Size > 0)
+		{
+			p.m_Data = std::unique_ptr<char[]>(new char[p.m_Size]);
+			memcpy(p.m_Data.get(), m.read_data(p.m_Size), p.m_Size);
+		}
 		return m;
 	}
 
