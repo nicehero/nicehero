@@ -227,7 +227,7 @@ namespace nicehero
 		{
 			auto conn = m_Connection;
 			auto ret = inspect();
-			nlog(ret.c_str());
+			//nlog(ret.c_str());
 			m_Connection->m_socket.get_io_context().post([conn,ret] {
 				conn->m_sendBuffers.push_back(std::move(ret));
 				if (!conn->m_IsSending)
