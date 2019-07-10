@@ -276,7 +276,7 @@ int main(int argc, char* argv[])
 	{
 		listenIP = "::";
 	}
-	nicehero::HttpServer httpServer(listenIP,8888);
+	nicehero::HttpServer httpServer(listenIP,8080);
 	httpServer.addHandler("/", [] HTTP_HANDLER_PARAMS{
 		res->write("hello world");
 	});
