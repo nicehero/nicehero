@@ -199,8 +199,32 @@ public:
 	char nnn[10] = "a\n";
 };
 
+#include "HttpServer.h"
+#include <iostream>
+
 int main(int argc, char* argv[])
 {
+
+	const char text[] = "GET /uri.cgi HTTP/1.1\r\n"
+		"User-Agent: Mozilla/5.0\r\n"
+		"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+		"Host: 127.0.0.1\r\n"
+		"\r\n";
+
+	nicehero::HttpRequestBase request;
+	nicehero::HttpRequestParser parser;
+
+	nicehero::HttpRequestParser::ParseResult res = parser.parse(request, text, text + sizeof(text));
+
+	if (res == nicehero::HttpRequestParser::ParsingCompleted)
+	{
+		std::cout << request.inspect() << std::endl;
+	}
+	else
+	{
+		std::cerr << "Parsing failed" << std::endl;
+	}
+
 	bool v6 = (argc > 1 && std::string(argv[1]) == "v6") ? true : false;
 	kcpTest();
 	task t;
@@ -252,6 +276,11 @@ int main(int argc, char* argv[])
 	{
 		listenIP = "::";
 	}
+	nicehero::HttpServer httpServer(listenIP,8888);
+	httpServer.addHandler("/", [] HTTP_HANDLER_PARAMS{
+		res->write("hello world");
+	});
+	httpServer.start();
 	MyServer tcpServer(listenIP, 7000);
 	tcpServer.accept();
 	MyKcpServer kcpServer(listenIP, 7001);
