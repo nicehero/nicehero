@@ -2,6 +2,7 @@
 #include <asio/asio.hpp>
 #include "Service.h"
 #include "Log.h"
+#include <list>
 namespace nicehero
 {
 	class HttpConnection
@@ -10,6 +11,7 @@ namespace nicehero
 	public:
 		HttpConnection()
 			:m_socket(getWorkerService()) {
+			m_IsSending = false;
 		}
 		void start()
 		{
@@ -106,7 +108,7 @@ namespace nicehero
 		HttpServer* m_Server;
 		std::vector<char> m_buffer;
 		std::list<std::string> m_sendBuffers;
-		std::atomic_bool m_IsSending = false;
+		std::atomic_bool m_IsSending;
 
 		void doSend()
 		{
