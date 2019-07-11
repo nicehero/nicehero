@@ -3,6 +3,23 @@
 #include <string>
 namespace nicehero
 {
+	inline void splitString(const std::string& src, std::vector<std::string>& strvec, char splitWord)
+	{
+		std::string strtemp;
+		std::string::size_type pos1, pos2;
+		pos2 = src.find(splitWord);
+		pos1 = 0;
+		while (std::string::npos != pos2)
+		{
+			strvec.push_back(src.substr(pos1, pos2 - pos1));
+
+			pos1 = pos2 + 1;
+			pos2 = src.find(splitWord, pos1);
+		}
+		strvec.push_back(src.substr(pos1));
+		return;
+	}
+
 	inline int StrCaseCmp(const std::string& a, const std::string& b) //same return 0
 	{
 		if (a.size() != b.size())

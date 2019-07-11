@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <map>
 
 #include "Common.hpp"
 
@@ -31,6 +32,8 @@ namespace nicehero
 		std::vector<char> content;
 		bool keepAlive;
 		int remainSize;
+		std::string paramsString;
+		std::map<std::string,std::string> params;
 
 		std::string inspect() const
 		{

@@ -70,6 +70,24 @@ namespace nicehero
 					response->statusCode = 404;
 					response->status = "nook";
 					response->m_Connection = self;
+					std::vector<std::string> ss;
+					splitString(request->uri, ss, '?');
+					request->uri = ss[0];
+					if (ss.size() > 1)
+					{
+						request->paramsString = std::move(ss[ss.size() - 1]);
+						std::vector<std::string> ss2;
+						splitString(request->paramsString, ss2, '&');
+						for (size_t i = 0; i < ss2.size(); ++ i)
+						{
+							std::vector<std::string> ss3;
+							splitString(ss2[i], ss3, '=');
+							if (ss3.size() > 1)
+							{
+								request->params[ss3[0]] = ss3[1];
+							}
+						}
+					}
 					auto it = m_Server->m_handles.find(request->uri);
 					if (it == m_Server->m_handles.end())
 					{
