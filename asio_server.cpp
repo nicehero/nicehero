@@ -199,6 +199,7 @@ public:
 	char nnn[10] = "a\n";
 };
 
+
 #include "HttpServer.h"
 #include <iostream>
 int main(int argc, char* argv[])
@@ -312,7 +313,7 @@ int main(int argc, char* argv[])
 				));
 		pool.update("easy",
 			NBSON_T("_id", BCON_INT64(103)),
-			NBSON_T("$set", "{", "ar.0.hello", BCON_INT64(101), "}"));
+			NBSON_T("ar.0.hello", BCON_INT64(101)));
 		auto cursor = pool.find("easy", NBSON_T("_id", BCON_INT64(103)), nicehero::Bson(nullptr));
 		while (auto r = cursor->fetch())
 		{

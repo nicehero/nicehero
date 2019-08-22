@@ -25,7 +25,7 @@ void benchmark_update(int threadNum, std::shared_ptr<nicehero::MongoConnectionPo
 		nicehero::post([xx, j, pool, t1, threadNum, tablename] {
 			for (int i = 1; i <= 100 * (1000 / threadNum); ++i)
 			{
-				auto obj = NBSON("$set", "{", "ar.0.hello", BCON_INT64(101), "}");
+				auto obj = NBSON("ar.0.hello", BCON_INT64(101));
 				pool->update(tablename, NBSON_T(
 					"_id", BCON_INT64(j * 10000 + i))
 					, *obj);
