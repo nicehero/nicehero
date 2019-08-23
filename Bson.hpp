@@ -6,7 +6,6 @@
 #include <memory>
 #include "Log.h"
 
-const ui32 TEMP_MAX_DOC_DATA_SIZE = 8192;
 namespace nicehero
 {
 	class Bson;
