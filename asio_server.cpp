@@ -293,7 +293,7 @@ int main(int argc, char* argv[])
 	});
 	{
 		nicehero::MongoConnectionPool pool;
-		pool.init("mongodb://dev:devv@192.168.9.5/?authSource=admin", "easy");
+		pool.init("mongodb://127.0.0.1/?authSource=admin", "easy");
 		pool.insert("easy",
 			NBSON_T(
 				"_id", BCON_INT64(103)
@@ -313,7 +313,7 @@ int main(int argc, char* argv[])
 				));
 		pool.update("easy",
 			NBSON_T("_id", BCON_INT64(103)),
-			NBSON_T("ar.0.hello", BCON_INT64(101)));
+			NBSON_T("ar.0.hello", BCON_INT64(101),"bbb", BCON_INT64(102)));
 		auto cursor = pool.find("easy", NBSON_T("_id", BCON_INT64(103)), nicehero::Bson(nullptr));
 		while (auto r = cursor->fetch())
 		{
