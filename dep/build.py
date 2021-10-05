@@ -8,14 +8,14 @@ do_os('rm -rf lib')
 
 do_os('mkdir include')
 do_os('mkdir lib')
-print 'download micro-ecc'
+print ('download micro-ecc')
 
-do_os("wget https://github.com/nicehero/micro-ecc/archive/v1.0.tar.gz")
+do_os("wget https://github.com/nicehero/micro-ecc/archive/refs/tags/v1.0.tar.gz")
 do_os("tar xvf v1.0.tar.gz")
 do_os("mv micro-ecc-1.0 include/micro-ecc")
 do_os("rm -rf v1.0.tar.gz")
 
-print 'build micro-ecc'
+print ('build micro-ecc')
 
 if os.name == "nt":
 	do_os("gcc -c include/micro-ecc/uECC.c")
@@ -26,9 +26,9 @@ else:
 	do_os("gcc -shared -fPIC -o lib/libuECC.so include/micro-ecc/uECC.c")
 do_os("rm -rf uECC.o")
 
-print 'end micro-ecc'
+print ('end micro-ecc')
 
-print 'download asio'
+print ('download asio')
 do_os("wget https://github.com/chriskohlhoff/asio/archive/asio-1-12-2.tar.gz")
 do_os("tar xvf asio-1-12-2.tar.gz")
 do_os("mv asio-asio-1-12-2/asio/include/asio include/")
@@ -36,7 +36,7 @@ do_os("mv asio-asio-1-12-2/asio/include/asio.hpp include/asio/")
 do_os("rm -rf asio-asio-1-12-2")
 do_os("rm -rf asio-1-12-2.tar.gz")
 
-print 'download tiny_sha3'
+print ('download tiny_sha3')
 do_os("git clone https://github.com/mjosaarinen/tiny_sha3")
 do_os("mv tiny_sha3 include/")
 if os.name == "nt":
@@ -48,9 +48,9 @@ else:
 	do_os("gcc -shared -fPIC -o lib/libsha3.so include/tiny_sha3/sha3.c")
 do_os("rm -rf sha3.o")
 
-print 'download mongo-c' #mongo-c-driver-1.14.0.tar.gz
+print ('download mongo-c') #mongo-c-driver-1.14.0.tar.gz
 do_os("wget https://github.com/mongodb/mongo-c-driver/releases/download/1.14.0/mongo-c-driver-1.14.0.tar.gz")
-print 'build mongoc'
+print ('build mongoc')
 do_os('tar xvf mongo-c-driver-1.14.0.tar.gz')
 do_os('mkdir build_mongoc')
 os.chdir('./build_mongoc')
@@ -87,12 +87,12 @@ else:
 do_os('rm -rf mongo-c-driver-1.14.0')
 do_os('rm -rf mongo-c-driver-1.14.0.tar.gz')
 
-print 'download kcp'
+print ('download kcp')
 do_os("wget https://github.com/skywind3000/kcp/archive/1.3.tar.gz")
 do_os("tar xvf 1.3.tar.gz")
 do_os("mv kcp-1.3 include/kcp")
 do_os("rm -rf 1.3.tar.gz")
-print 'build kcp'
+print ('build kcp')
 if os.name == "nt":
 	body = open("include/kcp/ikcp.c","rb").read()
 	body = body.replace("vsprintf(buffer","vsnprintf(buffer,1024")
@@ -106,4 +106,4 @@ do_os("rm -rf ikcp.o")
 
 
 do_os("echo 0.1 > done")
-print 'done'
+print ('done')
